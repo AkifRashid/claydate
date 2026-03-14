@@ -81,18 +81,38 @@ input[type=text]::placeholder{color:#c0b8a8;}
 /* ── KILN ── */
 #s-kiln{
   z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at 50% 55%,rgba(255,140,30,.28) 0%,rgba(12,5,1,.97) 60%);
+  background:radial-gradient(ellipse at 50% 50%,rgba(250,245,235,.95) 0%,rgba(35,30,25,.88) 75%);
   gap:1.1rem;
 }
 .kiln-t{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,3.8vw,2.6rem);color:#ffb030;font-style:italic;text-shadow:0 0 28px rgba(255,160,40,.7);animation:flkr 3.5s ease-in-out infinite;}
 @keyframes flkr{0%,100%{opacity:1}93%{opacity:1}95%{opacity:.5}97%{opacity:1}}
 .polaroid{background:#fdfaf4;padding:1.05rem 1.05rem 2.7rem;box-shadow:0 18px 55px rgba(0,0,0,.65);transform:rotate(-1.1deg);position:relative;max-width:min(460px,88vw);}
 .pol-in{background:#e8d9bc;display:flex;gap:.6rem;padding:.65rem;align-items:center;justify-content:center;min-height:145px;}
-.pol-in canvas{max-width:130px;max-height:130px;}
+.pol-in canvas{max-width:180px;max-height:180px;}
 .pol-cap{position:absolute;bottom:.55rem;left:0;right:0;text-align:center;font-family:'Playfair Display',serif;font-size:.8rem;color:#5a3a20;letter-spacing:.04em;font-style:italic;}
 .kbtns{display:flex;gap:.75rem;}
 .btn-save{padding:.62rem 1.25rem;border:none;border-radius:12px;background:linear-gradient(135deg,#c05828,#d86838);color:#fff;font-family:'Nunito',sans-serif;font-weight:900;font-size:.85rem;cursor:pointer;box-shadow:0 4px 14px rgba(192,88,40,.3);transition:all .2s;}
 .btn-save:hover{transform:translateY(-2px);}
+
+/* ── STAGE SYSTEM ── */
+.stage-pill{position:absolute;top:3.2rem;left:50%;transform:translateX(-50%);z-index:31;font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8a9a78;background:rgba(250,247,242,.88);padding:.3rem .9rem;border-radius:20px;backdrop-filter:blur(4px);pointer-events:none;}
+
+/* Ready button */
+.ready-wrap{position:absolute;bottom:3.2rem;left:50%;transform:translateX(-50%);z-index:31;display:flex;flex-direction:column;align-items:center;gap:.3rem;}
+.ready-btn{padding:.5rem 1.6rem;border:2px solid #8a9a78;border-radius:14px;background:rgba(250,247,242,.92);color:#6a7a60;font-family:'Nunito',sans-serif;font-weight:900;font-size:.78rem;cursor:pointer;transition:all .2s;backdrop-filter:blur(4px);}
+.ready-btn:hover{background:#8a9a78;color:#fff;border-color:#8a9a78;}
+.ready-btn.on{background:#8a9a78;color:#fff;border-color:#6a7a60;pointer-events:none;}
+.ready-status{font-size:.56rem;font-weight:700;color:#8a9a78;letter-spacing:.08em;}
+
+/* Paint toolbar */
+.paint-bar{position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);z-index:31;display:flex;align-items:center;gap:.45rem;background:rgba(250,247,242,.94);padding:.45rem .8rem;border-radius:16px;box-shadow:0 4px 18px rgba(0,0,0,.1);backdrop-filter:blur(6px);}
+.paint-bar .sw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s;}
+.paint-bar .sw.on{border-color:#3a3028;transform:scale(1.2);}
+.paint-bar .plbl{font-size:.56rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8a9a78;margin-right:.2rem;}
+.paint-bar .sep{width:1px;height:20px;background:#ddd8d0;margin:0 .2rem;}
+.brush-sz{display:flex;gap:.3rem;align-items:center;}
+.bsz{width:14px;height:14px;border-radius:50%;background:#aaa;cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.bsz.on{border-color:#3a3028;}
 </style>
 </head>
 <body>
@@ -150,9 +170,12 @@ input[type=text]::placeholder{color:#c0b8a8;}
     <div class="tb-logo">Kiln & Co.</div>
     <div class="tb-r">
       <div class="cpill"><div class="cdot" id="cdot"></div><span id="clbl">Solo</span></div>
-      <button class="fire-btn" onclick="fireKiln()">🔥 Fire the Kiln</button>
+      <button class="fire-btn" style="background:linear-gradient(135deg,#8a9a78,#6a8a60);" onclick="resetClay()">↺ New Clay</button>
     </div>
   </div>
+
+  <!-- Stage indicator -->
+  <div class="stage-pill" id="stage-pill">✋ Shaping</div>
 
   <div id="labels">
     <div class="p-label" id="lbl-left" style="left:12%;bottom:38%">
@@ -167,22 +190,52 @@ input[type=text]::placeholder{color:#c0b8a8;}
   <div id="drag-left"></div>
   <div id="drag-right"></div>
 
-  <div class="hint-bar">Drag ↕ to pull & push · Drag ↔ to widen & narrow · Hold to smooth</div>
+  <!-- Ready button — both players press to advance stage -->
+  <div class="ready-wrap" id="ready-wrap">
+    <button class="ready-btn" id="ready-btn" onclick="pressReady()">✓ Ready</button>
+    <div class="ready-status" id="ready-status"></div>
+  </div>
+
+  <!-- Paint toolbar — hidden until paint stage -->
+  <div class="paint-bar" id="paint-bar" style="display:none;">
+    <button class="fire-btn" style="padding:.3rem .7rem;font-size:.78rem;background:#8a9a78;" onmousedown="startRotate(-1)" onmouseup="stopRotate()" onmouseleave="stopRotate()" ontouchstart="startRotate(-1)" ontouchend="stopRotate()">&lt; Rotate</button>
+    <div class="sep"></div>
+    <div class="plbl">Glaze</div>
+    <div class="sw on" style="background:#f0f0e8" data-pc="#f0f0e8" onclick="setPaintCol(this)"></div>
+    <div class="sw" style="background:#3868a8" data-pc="#3868a8" onclick="setPaintCol(this)"></div>
+    <div class="sw" style="background:#c83848" data-pc="#c83848" onclick="setPaintCol(this)"></div>
+    <div class="sw" style="background:#e8b838" data-pc="#e8b838" onclick="setPaintCol(this)"></div>
+    <div class="sw" style="background:#5a9848" data-pc="#5a9848" onclick="setPaintCol(this)"></div>
+    <div class="sw" style="background:#9858b8" data-pc="#9858b8" onclick="setPaintCol(this)"></div>
+    <div class="sw" style="background:#e88098" data-pc="#e88098" onclick="setPaintCol(this)"></div>
+    <div class="sw" style="background:#2a2820" data-pc="#2a2820" onclick="setPaintCol(this)"></div>
+    <div class="sw" style="background:#d45520" data-pc="#d45520" onclick="setPaintCol(this)"></div>
+    <div class="sep"></div>
+    <div class="brush-sz">
+      <div class="bsz" style="width:10px;height:10px;background:#888;" data-bs="2" onclick="setBrushSz(this)"></div>
+      <div class="bsz on" style="width:14px;height:14px;background:#888;" data-bs="4" onclick="setBrushSz(this)"></div>
+      <div class="bsz" style="width:18px;height:18px;background:#888;" data-bs="7" onclick="setBrushSz(this)"></div>
+    </div>
+    <div class="sep"></div>
+    <button class="fire-btn" style="padding:.3rem .7rem;font-size:.78rem;background:#8a9a78;" onmousedown="startRotate(1)" onmouseup="stopRotate()" onmouseleave="stopRotate()" ontouchstart="startRotate(1)" ontouchend="stopRotate()">Rotate &gt;</button>
+  </div>
+
+  <div class="hint-bar" id="hint-bar">Drag ↕ to pull & push · Drag ↔ to widen & narrow · Hold to smooth</div>
 </div>
 
 <!-- ══ KILN ══ -->
 <div class="screen off" id="s-kiln">
-  <div class="kiln-t">✦ Fired with love ✦</div>
+  <div class="kiln-t">✦ Our little gallery ✦</div>
   <div class="polaroid">
     <div class="pol-in">
-      <canvas id="pk-left" width="130" height="130"></canvas>
-      <canvas id="pk-right" width="130" height="130"></canvas>
+      <canvas id="pk-left" width="260" height="260"></canvas>
+      <canvas id="pk-right" width="260" height="260"></canvas>
     </div>
     <div class="pol-cap" id="pk-cap"></div>
   </div>
   <div class="kbtns">
     <button class="btn-save" onclick="savePol()">💾 Save Keepsake</button>
-    <button class="btn-ghost" onclick="closeKiln()">Keep Shaping</button>
+    <button class="btn-ghost" onclick="closeKiln()">← Back to Studio</button>
   </div>
 </div>
 
@@ -200,17 +253,28 @@ const LATHE_SEGS = 80;     // higher for glossy reflections to look good
 const WHEEL_R = 0.85;
 const CLAY_VOLUME_FACTOR = 0.7;
 const SMOOTH_SUBDIVS = 4;  // Catmull-Rom subdivisions between control points
-const SPRING_LERP = 0.32;  // how fast clay eases toward target shape
+const SPRING_LERP = 0.62;  // responsive but still has slight settle feel
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // APP STATE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 let myName='', myCol='#d45520', mode='solo';
 
+// Stage system: 'shape' → 'paint' → 'gallery'
+let currentStage = 'shape';
+let myReady = false, partnerReady = false;
+let paintCol = '#f0f0e8', brushSize = 4;
+const PAINT_W = 512, PAINT_H = 256;
+
+// Camera positions for each stage
+const CAM_SHAPE = { x:0, y:5.2, z:10.5, lx:0, ly:2.4, lz:0 };
+const CAM_PAINT = { x:-2.2, y:4.0, z:6.5, lx:-2.2, ly:3.0, lz:0.2 }; // zoom into left pot
+let camTarget = CAM_SHAPE;
+
 // Two pots: left=mine, right=partner
 const pots = {
-  left:  { profile: null, displayProfile: null, spin: 0, angle: 0, mesh: null, wheelMesh: null, col: '#d45520', touchSeg: -1 },
-  right: { profile: null, displayProfile: null, spin: 0, angle: 0, mesh: null, wheelMesh: null, col: '#5b8ec4', touchSeg: -1 }
+  left:  { profile: null, displayProfile: null, spin: 0, angle: 0, mesh: null, wheelMesh: null, col: '#d45520', touchSeg: -1, paintCanvas: null, paintTex: null },
+  right: { profile: null, displayProfile: null, spin: 0, angle: 0, mesh: null, wheelMesh: null, col: '#5b8ec4', touchSeg: -1, paintCanvas: null, paintTex: null }
 };
 
 let peer=null, conn=null;
@@ -230,7 +294,7 @@ let tableGroup, floorMesh, wallMesh;
 
 function initThree(){
   const canvas = document.getElementById('three-canvas');
-  renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer = new THREE.WebGLRenderer({ canvas, antialias:true, preserveDrawingBuffer:true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -711,7 +775,9 @@ function buildWheels(){
 
     // Init pot profile & mesh
     pots[side].profile = makePot();
-    pots[side].displayProfile = makePot(); // display copy for springy lerp
+    pots[side].displayProfile = makePot();
+    // Init paint canvas — hidden 2D canvas used as UV texture
+    initPaintCanvas(side);
     buildPotMesh(side);
   });
 }
@@ -770,25 +836,42 @@ function buildPotMesh(side){
   const pot = pots[side];
   if(pot.meshGroup){
     pot.group.remove(pot.meshGroup);
-    pot.meshGroup.traverse(c=>{ if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); });
+    pot.meshGroup.traverse(c=>{ if(c.geometry) c.geometry.dispose(); });
+    // Don't dispose cached materials
   }
 
-  // Use display profile (springy) if available, else the direct profile
   const useProfile = pot.displayProfile || pot.profile;
   
+  // Cache materials — only recreate when colour changes
   const col = parseHex(pot.col);
-  // ── WET GLOSSY CLAY MATERIAL — the key visual upgrade ──
-  const clayMat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(col.r/255, col.g/255, col.b/255),
-    roughness: 0.38,     // wet clay is semi-glossy
-    metalness: 0.08,     // slight metallic sheen from water
-    envMapIntensity: 0.6,
-  });
-  const darkMat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(col.r/255*0.2, col.g/255*0.2, col.b/255*0.2),
-    roughness: 0.7, metalness: 0.05, side: THREE.BackSide,
-  });
-  const veryDarkMat = new THREE.MeshStandardMaterial({color:0x050302,roughness:1});
+  const colKey = pot.col;
+  if(!pot._matCache || pot._matCacheKey !== colKey){
+    // Dispose old cached materials
+    if(pot._matCache){
+      pot._matCache.clay.dispose();
+      pot._matCache.dark.dispose();
+      pot._matCache.vdark.dispose();
+      if(pot._matCache.paint) pot._matCache.paint.dispose();
+    }
+    pot._matCache = {
+      clay: new THREE.MeshStandardMaterial({
+        color: new THREE.Color(col.r/255, col.g/255, col.b/255),
+        roughness: 0.38, metalness: 0.08, envMapIntensity: 0.6,
+      }),
+      dark: new THREE.MeshStandardMaterial({
+        color: new THREE.Color(col.r/255*0.2, col.g/255*0.2, col.b/255*0.2),
+        roughness: 0.7, metalness: 0.05, side: THREE.BackSide,
+      }),
+      vdark: new THREE.MeshStandardMaterial({color:0x050302, roughness:1}),
+      paint: pot.paintTex ? new THREE.MeshStandardMaterial({
+        map: pot.paintTex, transparent: true, roughness: 0.45, metalness: 0.03, depthWrite: false,
+      }) : null,
+    };
+    pot._matCacheKey = colKey;
+  }
+  const clayMat = pot._matCache.clay;
+  const darkMat = pot._matCache.dark;
+  const veryDarkMat = pot._matCache.vdark;
 
   pot.meshGroup = new THREE.Group();
   pot.meshGroup.position.y = 0.055;
@@ -800,6 +883,21 @@ function buildPotMesh(side){
   pot.mesh = new THREE.Mesh(lathGeo, clayMat);
   pot.mesh.castShadow = true; pot.mesh.receiveShadow = true;
   pot.meshGroup.add(pot.mesh);
+
+  // Paint overlay — same geometry, slightly offset outward, uses cached paint material
+  if(pot.paintTex && pot._matCache.paint){
+    pot.paintTex.needsUpdate = true;
+    const paintGeo = lathGeo.clone();
+    const posAttr = paintGeo.getAttribute('position');
+    const normAttr = paintGeo.getAttribute('normal');
+    for(let i = 0; i < posAttr.count; i++){
+      posAttr.setX(i, posAttr.getX(i) + normAttr.getX(i) * 0.003);
+      posAttr.setY(i, posAttr.getY(i) + normAttr.getY(i) * 0.003);
+      posAttr.setZ(i, posAttr.getZ(i) + normAttr.getZ(i) * 0.003);
+    }
+    const paintMesh = new THREE.Mesh(paintGeo, pot._matCache.paint);
+    pot.meshGroup.add(paintMesh);
+  }
 
   // Bottom cap
   const botGeo = new THREE.CircleGeometry(useProfile[0].r, LATHE_SEGS);
@@ -864,6 +962,19 @@ function buildPotMesh(side){
   updateSplash(side);
 }
 
+// Initialize a hidden 2D canvas for painting on each pot
+function initPaintCanvas(side){
+  const cv = document.createElement('canvas');
+  cv.width = PAINT_W; cv.height = PAINT_H;
+  const ctx = cv.getContext('2d');
+  // Start transparent — clay colour shows through
+  ctx.clearRect(0, 0, PAINT_W, PAINT_H);
+  pots[side].paintCanvas = cv;
+  pots[side].paintTex = new THREE.CanvasTexture(cv);
+  pots[side].paintTex.wrapS = THREE.RepeatWrapping;
+  pots[side].paintTex.wrapT = THREE.ClampToEdgeWrapping;
+}
+
 function rebuildPotMesh(side){
   buildPotMesh(side);
 }
@@ -873,10 +984,15 @@ function updateSplash(side){
   const sg = pot.splashGroup;
   while(sg.children.length) sg.remove(sg.children[0]);
   const col = parseHex(pot.col);
-  const mat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(col.r/255*.8, col.g/255*.8, col.b/255*.8),
-    roughness:.9
-  });
+  if(!pot._splashMat || pot._splashMatKey !== pot.col){
+    if(pot._splashMat) pot._splashMat.dispose();
+    pot._splashMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(col.r/255*.8, col.g/255*.8, col.b/255*.8),
+      roughness:.9
+    });
+    pot._splashMatKey = pot.col;
+  }
+  const mat = pot._splashMat;
   for(let i=0;i<6;i++){
     const a = i*1.05, r = 0.3+Math.sin(i*1.7)*0.25;
     const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.04+i*.015,0.05+i*.015,0.01,8), mat);
@@ -894,10 +1010,28 @@ let _time = 0;
 function renderLoop(){
   _time += 0.016;
   
+  // ── CAMERA LERP — smooth transition between stages ──
+  const cl = 0.04; // camera lerp speed
+  camera.position.x += (camTarget.x - camera.position.x) * cl;
+  camera.position.y += (camTarget.y - camera.position.y) * cl;
+  camera.position.z += (camTarget.z - camera.position.z) * cl;
+  const lookAt = new THREE.Vector3(
+    camera.userData.lx || 0, camera.userData.ly || 2.4, camera.userData.lz || 0
+  );
+  camera.userData.lx = (camera.userData.lx||0) + (camTarget.lx - (camera.userData.lx||0)) * cl;
+  camera.userData.ly = (camera.userData.ly||2.4) + (camTarget.ly - (camera.userData.ly||2.4)) * cl;
+  camera.userData.lz = (camera.userData.lz||0) + (camTarget.lz - (camera.userData.lz||0)) * cl;
+  camera.lookAt(camera.userData.lx, camera.userData.ly, camera.userData.lz);
+  
   ['left','right'].forEach(side => {
     const p = pots[side];
-    p.angle += p.spin * 0.018;
-    p.spin *= 0.9962;
+    // During paint stage, force spin to zero — pot is off the wheel
+    if(currentStage === 'paint'){
+      p.spin = 0;
+    } else {
+      p.angle += p.spin * 0.018;
+      p.spin *= 0.9962;
+    }
     if(p.group) p.group.rotation.y = p.angle;
 
     // ── SPRINGY DEFORMATION: display profile lerps toward target profile ──
@@ -1078,16 +1212,46 @@ function screenYToSegmentExtrap(screenY, segScreenYs){
 
 function bindInput(){
   const el = document.getElementById('drag-left');
-  el.addEventListener('mousedown', e=>startDrag(e.clientX, e.clientY));
-  el.addEventListener('mousemove', e=>{ if(drag) onDrag(e.clientX, e.clientY); });
-  el.addEventListener('mouseup', endDrag);
-  el.addEventListener('mouseleave', endDrag);
-  el.addEventListener('touchstart', e=>{ e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); },{passive:false});
-  el.addEventListener('touchmove',  e=>{ e.preventDefault(); if(drag) onDrag(e.touches[0].clientX, e.touches[0].clientY); },{passive:false});
-  el.addEventListener('touchend',   e=>{ e.preventDefault(); endDrag(); },{passive:false});
+  
+  el.addEventListener('mousedown', e => {
+    if(currentStage === 'shape') startDrag(e.clientX, e.clientY);
+    else if(currentStage === 'paint'){ paintDragging = true; applyPaintAt(e.clientX, e.clientY); }
+  });
+  el.addEventListener('mousemove', e => {
+    if(currentStage === 'shape' && drag) onDrag(e.clientX, e.clientY);
+    else if(currentStage === 'paint' && paintDragging) applyPaintAt(e.clientX, e.clientY);
+  });
+  el.addEventListener('mouseup', e => {
+    if(currentStage === 'shape') endDrag();
+    else paintDragging = false;
+  });
+  el.addEventListener('mouseleave', e => {
+    if(currentStage === 'shape') endDrag();
+    else paintDragging = false;
+  });
+  
+  // Touch
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if(currentStage === 'shape') startDrag(t.clientX, t.clientY);
+    else if(currentStage === 'paint'){ paintDragging = true; applyPaintAt(t.clientX, t.clientY); }
+  }, {passive:false});
+  el.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if(currentStage === 'shape' && drag) onDrag(t.clientX, t.clientY);
+    else if(currentStage === 'paint' && paintDragging) applyPaintAt(t.clientX, t.clientY);
+  }, {passive:false});
+  el.addEventListener('touchend', e => {
+    e.preventDefault();
+    if(currentStage === 'shape') endDrag();
+    else paintDragging = false;
+  }, {passive:false});
 }
 
 function startDrag(cx, cy){
+  if(currentStage !== 'shape') return;
   drag = true; smoothMode = false;
   prevX = cx; prevY = cy; startX = cx; startY = cy;
   dragAccumX = 0; dragAccumY = 0;
@@ -1097,6 +1261,7 @@ function startDrag(cx, cy){
 }
 
 function onDrag(cx, cy){
+  if(currentStage !== 'shape'){ prevX=cx; prevY=cy; return; }
   clearTimeout(holdTimer); holdTimer = null;
   const dx = cx - prevX;
   const dy = cy - prevY;
@@ -1430,7 +1595,28 @@ function onData(d){
     pots.right.spin=d.spin||0;
     scheduleRebuild('right');
   } else if(d.type==='kiln'){
-    showKiln();
+    showGallery();
+  } else if(d.type==='reset'){
+    pots.right.profile = makePot();
+    pots.right.displayProfile = makePot();
+    if(pots.right.paintCanvas){
+      const ctx = pots.right.paintCanvas.getContext('2d');
+      ctx.clearRect(0, 0, PAINT_W, PAINT_H);
+      pots.right.paintTex.needsUpdate = true;
+    }
+    pots.right.spin = 4;
+    scheduleRebuild('right');
+  } else if(d.type==='ready'){
+    partnerReady = true;
+    updateReadyUI();
+    checkBothReady();
+  } else if(d.type==='unready'){
+    partnerReady = false;
+    updateReadyUI();
+  } else if(d.type==='paint'){
+    paintAtUV('right', d.u, d.v, d.col, d.sz);
+  } else if(d.type==='paintBatch'){
+    d.strokes.forEach(s => paintAtUV('right', s.u, s.v, s.col, s.sz));
   }
 }
 function updateRightMaterial(){
@@ -1461,87 +1647,284 @@ function launch(online){
   }
 
   bindInput();
+  setStage('shape');
   initAudio();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // KILN
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function fireKiln(){ send({type:'kiln'}); showKiln(); }
+// Gallery is triggered by stage system, not a direct button anymore
 
-function showKiln(){
+function closeKiln(){ document.getElementById('s-kiln').classList.add('off'); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STAGE SYSTEM: shape → paint → gallery
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function setStage(stage){
+  currentStage = stage;
+  myReady = false; partnerReady = false;
+  updateReadyUI();
+  
+  const pill = document.getElementById('stage-pill');
+  const hint = document.getElementById('hint-bar');
+  const paintBar = document.getElementById('paint-bar');
+  const dragL = document.getElementById('drag-left');
+  
+  if(stage === 'shape'){
+    pill.textContent = '✋ Shaping';
+    hint.textContent = 'Drag ↕ to pull & push · Drag ↔ to widen & narrow · Hold to smooth';
+    paintBar.style.display = 'none';
+    document.getElementById('ready-wrap').style.display = '';
+    dragL.style.pointerEvents = '';
+    dragL.style.width = '50%';
+    document.getElementById('drag-right').style.display = '';
+    pots.left.spin = Math.max(pots.left.spin, 3);
+    camTarget = CAM_SHAPE;
+  } else if(stage === 'paint'){
+    pill.textContent = '🎨 Painting';
+    hint.textContent = 'Drag to paint · Use arrows to rotate';
+    paintBar.style.display = 'flex';
+    document.getElementById('ready-wrap').style.display = '';
+    dragL.style.pointerEvents = '';
+    dragL.style.width = '100%';
+    document.getElementById('drag-right').style.display = 'none';
+    pots.left.spin = 0;
+    pots.right.spin = 0;
+    camTarget = CAM_PAINT;
+    scheduleRebuild('left');
+    scheduleRebuild('right');
+  } else if(stage === 'gallery'){
+    paintBar.style.display = 'none';
+    document.getElementById('ready-wrap').style.display = 'none';
+    hint.textContent = '';
+    showGallery();
+  }
+}
+
+// ── READY SYSTEM ──
+function pressReady(){
+  myReady = !myReady;
+  send({type: myReady ? 'ready' : 'unready'});
+  updateReadyUI();
+  checkBothReady();
+}
+
+function updateReadyUI(){
+  const btn = document.getElementById('ready-btn');
+  const status = document.getElementById('ready-status');
+  if(myReady){
+    btn.classList.add('on');
+    btn.textContent = '✓ Ready!';
+  } else {
+    btn.classList.remove('on');
+    btn.textContent = currentStage === 'shape' ? '✓ Ready to paint' : '✓ Ready for gallery';
+  }
+  if(mode === 'solo'){
+    status.textContent = '';
+  } else if(myReady && partnerReady){
+    status.textContent = 'Both ready — advancing!';
+  } else if(myReady){
+    status.textContent = 'Waiting for partner…';
+  } else if(partnerReady){
+    status.textContent = 'Partner is ready!';
+  } else {
+    status.textContent = '';
+  }
+}
+
+function checkBothReady(){
+  if(mode === 'solo'){
+    // Solo: just advance immediately
+    if(myReady){
+      myReady = false;
+      if(currentStage === 'shape') setStage('paint');
+      else if(currentStage === 'paint') setStage('gallery');
+    }
+    return;
+  }
+  if(myReady && partnerReady){
+    setTimeout(()=>{
+      myReady = false; partnerReady = false;
+      if(currentStage === 'shape') setStage('paint');
+      else if(currentStage === 'paint') setStage('gallery');
+    }, 600); // brief delay so they see "Both ready"
+  }
+}
+
+// ── RESET ──
+function resetClay(){
+  pots.left.profile = makePot();
+  pots.left.displayProfile = makePot();
+  // Clear paint canvas
+  if(pots.left.paintCanvas){
+    const ctx = pots.left.paintCanvas.getContext('2d');
+    ctx.clearRect(0, 0, PAINT_W, PAINT_H);
+    pots.left.paintTex.needsUpdate = true;
+  }
+  pots.left.spin = 5;
+  pots.left.touchSeg = -1;
+  scheduleRebuild('left');
+  send({type:'reset'});
+  if(currentStage !== 'shape') setStage('shape');
+  bcast();
+}
+
+// ── PAINT MODE ──
+let paintDragging = false;
+let _rotateInterval = null;
+
+function setPaintCol(el){
+  paintCol = el.dataset.pc;
+  document.querySelectorAll('.paint-bar .sw').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+}
+function setBrushSz(el){
+  brushSize = parseInt(el.dataset.bs);
+  document.querySelectorAll('.bsz').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// Arrow button rotation — hold to spin
+function startRotate(dir){
+  stopRotate();
+  _rotateInterval = setInterval(()=>{
+    pots.left.angle += dir * 0.05;
+  }, 16);
+}
+function stopRotate(){
+  if(_rotateInterval){ clearInterval(_rotateInterval); _rotateInterval = null; }
+}
+
+// Convert screen position to UV coordinates using raycasting — no manual math
+const _raycaster = new THREE.Raycaster();
+const _mouse = new THREE.Vector2();
+
+function screenToUV(cx, cy, side){
+  const pot = pots[side];
+  if(!pot.mesh) return null;
+  
+  // Force world matrix update so raycast accounts for current rotation
+  pot.group.updateMatrixWorld(true);
+  
+  // Convert screen coords to normalized device coordinates (-1 to +1)
+  _mouse.x = (cx / window.innerWidth) * 2 - 1;
+  _mouse.y = -(cy / window.innerHeight) * 2 + 1;
+  
+  _raycaster.setFromCamera(_mouse, camera);
+  
+  // Raycast against the pot's lathe mesh
+  const intersects = _raycaster.intersectObject(pot.mesh, false);
+  if(intersects.length > 0 && intersects[0].uv){
+    const uv = intersects[0].uv;
+    return { u: uv.x, v: uv.y };
+  }
+  return null;
+}
+
+// Paint a dot on the canvas at UV coordinates
+function paintAtUV(side, u, v, col, size){
+  const pot = pots[side];
+  if(!pot.paintCanvas) return;
+  const ctx = pot.paintCanvas.getContext('2d');
+  const px = u * PAINT_W;
+  const py = (1-v) * PAINT_H; // canvas Y is top-down
+  const r = size * 2.5;
+  
+  ctx.beginPath();
+  ctx.arc(px, py, r, 0, Math.PI*2);
+  ctx.fillStyle = col;
+  ctx.fill();
+  
+  // Handle wrap-around — if near edge, also paint on other side
+  if(px < r) { ctx.beginPath(); ctx.arc(px + PAINT_W, py, r, 0, Math.PI*2); ctx.fill(); }
+  if(px > PAINT_W - r) { ctx.beginPath(); ctx.arc(px - PAINT_W, py, r, 0, Math.PI*2); ctx.fill(); }
+  
+  pot.paintTex.needsUpdate = true;
+  // No scheduleRebuild needed — texture update is automatic via needsUpdate
+}
+
+// Apply paint from screen coordinates
+let _paintBatch = [];
+let _paintBatchTimer = null;
+
+function applyPaintAt(cx, cy){
+  const uv = screenToUV(cx, cy, 'left');
+  if(!uv) return; // didn't hit the pot
+  paintAtUV('left', uv.u, uv.v, paintCol, brushSize);
+  _paintBatch.push({u:uv.u, v:uv.v, col:paintCol, sz:brushSize});
+  if(!_paintBatchTimer){
+    _paintBatchTimer = setTimeout(()=>{
+      if(_paintBatch.length > 0){
+        send({type:'paintBatch', strokes:_paintBatch});
+        _paintBatch = [];
+      }
+      _paintBatchTimer = null;
+    }, 50);
+  }
+}
+
+// ── GALLERY ──
+function showGallery(){
   document.getElementById('s-kiln').classList.remove('off');
-  renderPotToCanvas('pk-left',  pots.left.profile,  pots.left.col);
-  renderPotToCanvas('pk-right', pots.right.profile, pots.right.col);
+  
+  // Capture 3D screenshots of each pot with paint visible
+  snapshotPot('left', 'pk-left');
+  snapshotPot('right', 'pk-right');
+  
   const pn = document.getElementById('name-right').textContent;
   const d = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   document.getElementById('pk-cap').textContent = `${myName} & ${pn} · ${d}`;
   playKilnSound();
 }
 
-function renderPotToCanvas(id, profile, colStr){
-  const cv = document.getElementById(id);
-  cv.width=130; cv.height=130;
-  const ctx = cv.getContext('2d');
-  ctx.fillStyle='#e8d9bc'; ctx.fillRect(0,0,130,130);
-
-  const col = parseHex(colStr);
-  const [r,g,b] = [col.r, col.g, col.b];
-  const cx=65, baseY=118;
-  const maxR = Math.max(...profile.map(p=>p.r));
-  const maxH = Math.max(...profile.map(p=>p.y));
-  const availH = 95, availR = 50;
-  const scH = availH / Math.max(maxH, 0.01);
-  const scR = availR / Math.max(maxR, 0.01);
-  const sc = Math.min(scH, scR) * 0.9;
-
-  const f=(v,a)=>Math.min(255,Math.max(0,Math.round(v*a)));
-
-  // Shadow
-  const sh = ctx.createRadialGradient(cx,baseY,0,cx,baseY,profile[0].r*sc*1.4);
-  sh.addColorStop(0,'rgba(0,0,0,.3)'); sh.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.beginPath(); ctx.ellipse(cx,baseY,profile[0].r*sc*1.4,profile[0].r*sc*.28,0,0,Math.PI*2);
-  ctx.fillStyle=sh; ctx.fill();
-
-  // Pot body
-  ctx.beginPath();
-  ctx.moveTo(cx+profile[0].r*sc, baseY);
-  for(let i=1;i<=SEGS;i++) ctx.lineTo(cx+profile[i].r*sc, baseY - profile[i].y*sc);
-  for(let i=SEGS;i>=0;i--) ctx.lineTo(cx-profile[i].r*sc, baseY - profile[i].y*sc);
-  ctx.closePath();
-
-  const topY2 = baseY - profile[SEGS].y*sc;
-  const bg = ctx.createLinearGradient(cx-maxR*sc, 0, cx+maxR*sc, 0);
-  bg.addColorStop(0,   `rgb(${f(r,.45)},${f(g,.45)},${f(b,.45)})`);
-  bg.addColorStop(.2,  `rgb(${f(r,.8)},${f(g,.8)},${f(b,.8)})`);
-  bg.addColorStop(.38, `rgb(${f(r,1.15)},${f(g,1.12)},${f(b,1.0)})`);
-  bg.addColorStop(.58, `rgb(${r},${g},${b})`);
-  bg.addColorStop(.8,  `rgb(${f(r,.78)},${f(g,.78)},${f(b,.78)})`);
-  bg.addColorStop(1,   `rgb(${f(r,.45)},${f(g,.45)},${f(b,.45)})`);
-  ctx.fillStyle=bg; ctx.fill();
-
-  // Top opening
-  const tr=profile[SEGS].r*sc, ty=topY2;
-  if(tr>3){
-    ctx.beginPath(); ctx.ellipse(cx,ty,tr,tr*.24,0,0,Math.PI*2);
-    ctx.fillStyle=`rgb(${f(r,.6)},${f(g,.6)},${f(b,.6)})`; ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx,ty,tr*.72,tr*.17,0,0,Math.PI*2);
-    ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fill();
-  }
+// Take a 3D snapshot of one pot by temporarily moving the camera
+function snapshotPot(side, canvasId){
+  const pot = pots[side];
+  const gx = side === 'left' ? -2.2 : 2.2;
+  const topY = (pot.displayProfile || pot.profile)[SEGS].y;
+  const centerY = 2.09 + 0.055 + topY * 0.45;
+  
+  // Save camera state
+  const savedPos = camera.position.clone();
+  const savedLx = camera.userData.lx, savedLy = camera.userData.ly, savedLz = camera.userData.lz;
+  
+  // Position camera directly in front of this pot
+  camera.position.set(gx, centerY + 0.3, 3.5);
+  camera.lookAt(gx, centerY, 0.2);
+  camera.updateProjectionMatrix();
+  
+  // Render one frame
+  renderer.render(scene, camera);
+  
+  // Capture the WebGL canvas to the keepsake canvas
+  const dest = document.getElementById(canvasId);
+  dest.width = 260; dest.height = 260;
+  const ctx = dest.getContext('2d');
+  const srcCanvas = renderer.domElement;
+  // Crop the center portion of the render
+  const sx = srcCanvas.width * 0.25, sy = srcCanvas.height * 0.1;
+  const sw = srcCanvas.width * 0.5, sh = srcCanvas.height * 0.8;
+  ctx.drawImage(srcCanvas, sx, sy, sw, sh, 0, 0, 260, 260);
+  
+  // Restore camera
+  camera.position.copy(savedPos);
+  camera.userData.lx = savedLx; camera.userData.ly = savedLy; camera.userData.lz = savedLz;
+  camera.lookAt(savedLx, savedLy, savedLz);
+  camera.updateProjectionMatrix();
 }
 
-function closeKiln(){ document.getElementById('s-kiln').classList.add('off'); }
-
 function savePol(){
-  const W=460, PH=320;
+  const W=520, PH=340;
   const out=document.createElement('canvas'); out.width=W; out.height=PH+55;
   const ctx=out.getContext('2d');
   ctx.fillStyle='#fdfaf4'; ctx.fillRect(0,0,W,PH+55);
   ctx.fillStyle='#e8d9bc'; ctx.fillRect(14,14,W-28,PH-28);
 
-  [['pk-left',22],['pk-right',238]].forEach(([id,x])=>{
+  [['pk-left',18],['pk-right',268]].forEach(([id,x])=>{
     const src=document.getElementById(id);
-    ctx.drawImage(src,x,16,195,208);
+    ctx.drawImage(src,x,20,230,230);
   });
 
   ctx.font='20px serif'; ctx.fillStyle='#c05828'; ctx.textAlign='center'; ctx.fillText('♥',W/2,PH-4);
