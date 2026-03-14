@@ -1308,11 +1308,24 @@ function goHost(){
     peer.on('open',()=>{
       document.getElementById('cbox').style.display='';
       document.getElementById('cval').textContent=code;
-      document.getElementById('btn-host').textContent='Waiting…';
-      setSt('Share code: '+code);
+      document.getElementById('btn-host').textContent='Waiting for partner…';
+      setSt('Share this code with your partner ↑');
     });
-    peer.on('connection',c=>{conn=c;onConn();});
-    peer.on('error',e=>{setSt('Error: '+e.type,'err');document.getElementById('btn-host').disabled=false;});
+    peer.on('connection',c=>{
+      conn=c;
+      // Wait for the connection to actually open before proceeding
+      conn.on('open', ()=>{ onConn(); });
+      conn.on('error',e=>{ setSt('Connection error: '+e,'err'); });
+    });
+    peer.on('error',e=>{
+      setSt('Error: '+e.type+'. Try again.','err');
+      document.getElementById('btn-host').disabled=false;
+      document.getElementById('btn-host').textContent='Open the Studio →';
+    });
+    peer.on('disconnected',()=>{
+      // Try to reconnect to signaling server
+      if(peer && !peer.destroyed) peer.reconnect();
+    });
   });
 }
 function goJoin(){
@@ -1324,18 +1337,67 @@ function goJoin(){
   loadPeer(()=>{
     peer=new Peer(undefined,pcfg());
     peer.on('open',()=>{
-      conn=peer.connect('kilnco-'+code,{reliable:false,serialization:'json'});
-      conn.on('open',onConn);
-      conn.on('error',()=>setSt('Room not found.','err'));
+      attemptJoin(code, 0);
     });
-    peer.on('error',()=>setSt('Connection failed.','err'));
+    peer.on('error',e=>{
+      if(e.type==='peer-unavailable'){
+        setSt('Room "'+code+'" not found. Check the code.','err');
+      } else {
+        setSt('Connection failed: '+e.type,'err');
+      }
+    });
   });
 }
-function pcfg(){return{host:'0.peerjs.com',secure:true,port:443,path:'/',config:{iceServers:[{urls:'stun:stun.l.google.com:19302'}]}};}
+
+// Retry join up to 3 times with increasing delay
+function attemptJoin(code, attempt){
+  if(attempt >= 3){
+    setSt('Could not connect after 3 tries. Check code & ask host to re-create.','err');
+    return;
+  }
+  if(attempt > 0) setSt('Retrying… (attempt '+(attempt+1)+'/3)');
+  
+  conn = peer.connect('kilnco-'+code, { reliable:true, serialization:'json' });
+  
+  let opened = false;
+  const timeout = setTimeout(()=>{
+    if(!opened){
+      conn.close();
+      attemptJoin(code, attempt+1);
+    }
+  }, 6000); // 6 second timeout per attempt
+  
+  conn.on('open', ()=>{
+    opened = true;
+    clearTimeout(timeout);
+    onConn();
+  });
+  conn.on('error',()=>{
+    if(!opened){
+      clearTimeout(timeout);
+      attemptJoin(code, attempt+1);
+    }
+  });
+}
+
+function pcfg(){
+  return {
+    host:'0.peerjs.com', secure:true, port:443, path:'/',
+    config:{
+      iceServers:[
+        {urls:'stun:stun.l.google.com:19302'},
+        {urls:'stun:stun1.l.google.com:19302'},
+        {urls:'stun:stun2.l.google.com:19302'},
+        {urls:'stun:stun.cloudflare.com:3478'},
+        {urls:'stun:global.stun.twilio.com:3478'}
+      ]
+    }
+  };
+}
 function loadPeer(cb){
   if(window.Peer){cb();return;}
   const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
-  s.onload=cb; s.onerror=()=>setSt('Network unavailable.','err'); document.head.appendChild(s);
+  s.onload=cb; s.onerror=()=>setSt('Could not load networking library. Check your connection.','err'); document.head.appendChild(s);
 }
 function rndCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:4},()=>c[Math.floor(Math.random()*c.length)]).join('');}
 
@@ -1343,7 +1405,10 @@ function onConn(){
   pots.left.col=myCol; pots.right.col='#5b8ec4';
   send({type:'intro',name:myName,col:myCol});
   conn.on('data',onData);
-  conn.on('close',()=>{document.getElementById('cdot').className='cdot';document.getElementById('clbl').textContent='Disconnected';});
+  conn.on('close',()=>{
+    document.getElementById('cdot').className='cdot';
+    document.getElementById('clbl').textContent='Disconnected';
+  });
   launch(true);
 }
 function onData(d){
