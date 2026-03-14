@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kiln & Co.</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; overflow:hidden; background:#1a1510; }
+body { font-family:'Nunito',sans-serif; }
+
+.screen { position:absolute; inset:0; }
+.screen.off { opacity:0; pointer-events:none; transition:opacity .5s; }
+
+/* ── LANDING ── */
+#s-land {
+  background:linear-gradient(155deg,#faf7f2 0%,#f0ebe2 50%,#e8e0d4 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9rem;z-index:20;
+  transition:opacity .5s;
+}
+.brand{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,4rem);color:#c05828;font-style:italic;}
+.brand span{color:#3a3028;font-style:normal;}
+.sub-tag{font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:#8a9a78;font-weight:800;}
+.card{background:#fff;border-radius:20px;padding:1.6rem;width:min(345px,92vw);box-shadow:0 8px 32px rgba(100,90,70,.1);}
+label{font-size:.63rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#8a9a78;display:block;margin-bottom:.3rem;}
+input[type=text]{width:100%;padding:.62rem .88rem;border:2px solid #ddd8d0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.9rem;color:#3a3028;outline:none;background:#faf8f5;transition:border-color .2s;}
+input[type=text]:focus{border-color:#c05828;}
+input[type=text]::placeholder{color:#c0b8a8;}
+.fg{margin-bottom:1rem;}
+.swatches{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem;}
+.sw{width:26px;height:26px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;}
+.sw:hover{transform:scale(1.15)} .sw.on{border-color:#3a2008;transform:scale(1.22)}
+.sw-c{position:relative;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.sw-c input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.modes{display:flex;gap:.33rem;margin-top:.3rem;}
+.mbtn{flex:1;padding:.46rem .18rem;border:2px solid #ddd8d0;border-radius:10px;background:#faf8f5;color:#7a7868;font-family:'Nunito',sans-serif;font-size:.76rem;font-weight:800;cursor:pointer;transition:all .18s;text-align:center;}
+.mbtn.on{background:#c05828;border-color:#c05828;color:#fff;}
+.code-box{background:#f5f2ec;border:2px solid #ddd8d0;border-radius:12px;padding:.72rem;text-align:center;margin-top:.62rem;}
+.code-big{font-size:2rem;letter-spacing:.28em;color:#c05828;font-weight:900;}
+.code-sm{font-size:.62rem;color:#8a9a78;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-top:.1rem;}
+.join-row{display:flex;gap:.38rem;margin-top:.42rem;}
+.join-row input{flex:1;text-align:center;letter-spacing:.2em;font-size:1rem;text-transform:uppercase;}
+.btn{width:100%;padding:.78rem;border:none;border-radius:12px;background:linear-gradient(135deg,#c05828,#d86838);color:#fff;font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;cursor:pointer;box-shadow:0 4px 18px rgba(192,88,40,.25);transition:all .22s;margin-top:.38rem;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(192,88,40,.38);}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.btn-ghost{background:transparent;border:2px solid #ccc8c0;border-radius:10px;color:#7a7868;font-family:'Nunito',sans-serif;font-weight:800;padding:.42rem .9rem;cursor:pointer;font-size:.78rem;transition:all .18s;}
+.btn-ghost:hover{border-color:#c05828;color:#c05828;}
+.st{text-align:center;font-size:.76rem;color:#8a9a78;margin-top:.62rem;min-height:.9rem;font-weight:700;}
+.st.err{color:#d03030;}
+
+/* ── GAME ── */
+#s-game { z-index:5; }
+#three-canvas { position:absolute; inset:0; display:block; }
+
+/* TOPBAR */
+.topbar{position:absolute;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:.55rem 1.2rem;background:rgba(250,247,242,.9);border-bottom:2px solid rgba(180,170,155,.15);backdrop-filter:blur(6px);}
+.tb-logo{font-family:'Playfair Display',serif;font-size:.96rem;color:#c05828;font-style:italic;}
+.tb-r{display:flex;gap:.55rem;align-items:center;}
+.cpill{display:flex;align-items:center;gap:.3rem;font-size:.68rem;color:#7a7868;font-weight:800;letter-spacing:.06em;}
+.cdot{width:7px;height:7px;border-radius:50%;background:#ccc;transition:background .4s;}
+.cdot.live{background:#4ccc4c;animation:bp 2s ease-in-out infinite;}
+.cdot.wait{background:#e8a030;animation:bp 1s ease-in-out infinite;}
+@keyframes bp{0%,100%{opacity:1}50%{opacity:.2}}
+.fire-btn{padding:.38rem .95rem;border:none;border-radius:20px;background:linear-gradient(135deg,#c05828,#d86838);color:#fff;font-family:'Nunito',sans-serif;font-weight:900;font-size:.72rem;cursor:pointer;box-shadow:0 3px 10px rgba(192,88,40,.25);transition:all .2s;}
+.fire-btn:hover{transform:translateY(-1px);box-shadow:0 5px 15px rgba(192,88,40,.4);}
+
+/* PLAYER LABELS - positioned over wheels */
+#labels{position:absolute;top:0;left:0;right:0;bottom:0;z-index:20;pointer-events:none;}
+.p-label{position:absolute;display:flex;align-items:center;gap:.38rem;font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);}
+.p-label .pd{width:9px;height:9px;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+
+/* drag zone overlays — invisible but capture input */
+#drag-left, #drag-right{position:absolute;top:0;bottom:0;width:50%;z-index:25;cursor:crosshair;touch-action:none;}
+#drag-left{left:0;}
+#drag-right{right:0;}
+
+/* HINT */
+.hint-bar{position:absolute;bottom:1.2rem;left:50%;transform:translateX(-50%);z-index:30;font-size:.63rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,240,210,.65);text-shadow:0 1px 3px rgba(0,0,0,.4);pointer-events:none;white-space:nowrap;}
+
+/* ── KILN ── */
+#s-kiln{
+  z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 55%,rgba(255,140,30,.28) 0%,rgba(12,5,1,.97) 60%);
+  gap:1.1rem;
+}
+.kiln-t{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,3.8vw,2.6rem);color:#ffb030;font-style:italic;text-shadow:0 0 28px rgba(255,160,40,.7);animation:flkr 3.5s ease-in-out infinite;}
+@keyframes flkr{0%,100%{opacity:1}93%{opacity:1}95%{opacity:.5}97%{opacity:1}}
+.polaroid{background:#fdfaf4;padding:1.05rem 1.05rem 2.7rem;box-shadow:0 18px 55px rgba(0,0,0,.65);transform:rotate(-1.1deg);position:relative;max-width:min(460px,88vw);}
+.pol-in{background:#e8d9bc;display:flex;gap:.6rem;padding:.65rem;align-items:center;justify-content:center;min-height:145px;}
+.pol-in canvas{max-width:130px;max-height:130px;}
+.pol-cap{position:absolute;bottom:.55rem;left:0;right:0;text-align:center;font-family:'Playfair Display',serif;font-size:.8rem;color:#5a3a20;letter-spacing:.04em;font-style:italic;}
+.kbtns{display:flex;gap:.75rem;}
+.btn-save{padding:.62rem 1.25rem;border:none;border-radius:12px;background:linear-gradient(135deg,#c05828,#d86838);color:#fff;font-family:'Nunito',sans-serif;font-weight:900;font-size:.85rem;cursor:pointer;box-shadow:0 4px 14px rgba(192,88,40,.3);transition:all .2s;}
+.btn-save:hover{transform:translateY(-2px);}
+</style>
+</head>
+<body>
+
+<!-- ══ LANDING ══ -->
+<div class="screen" id="s-land">
+  <div class="brand">Kiln <span>&</span> Co.</div>
+  <div class="sub-tag">A pottery class for two</div>
+  <div class="card">
+    <div class="fg">
+      <label>Your name</label>
+      <input type="text" id="i-name" placeholder="What shall we call you?" maxlength="20" autocomplete="off">
+    </div>
+    <div class="fg">
+      <label>Clay colour</label>
+      <div class="swatches">
+        <div class="sw on" style="background:#d45520" data-c="#d45520"></div>
+        <div class="sw" style="background:#5b8ec4" data-c="#5b8ec4"></div>
+        <div class="sw" style="background:#5aaa68" data-c="#5aaa68"></div>
+        <div class="sw" style="background:#a068c8" data-c="#a068c8"></div>
+        <div class="sw" style="background:#e8a838" data-c="#e8a838"></div>
+        <div class="sw" style="background:#e07088" data-c="#e07088"></div>
+        <div class="sw" style="background:#607880" data-c="#607880"></div>
+        <div class="sw sw-c" title="Custom">🎨<input type="color" id="ci" value="#d45520"></div>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Mode</label>
+      <div class="modes">
+        <div class="mbtn on" onclick="setMode('solo',this)">🏺 Solo</div>
+        <div class="mbtn" onclick="setMode('host',this)">📡 Host</div>
+        <div class="mbtn" onclick="setMode('join',this)">🔑 Join</div>
+      </div>
+    </div>
+    <div id="sec-solo"><button class="btn" onclick="goSolo()">Open the Studio →</button></div>
+    <div id="sec-host" style="display:none">
+      <div class="code-box" id="cbox" style="display:none"><div class="code-big" id="cval">—</div><div class="code-sm">Share with your partner</div></div>
+      <button class="btn" id="btn-host" onclick="goHost()">Open the Studio →</button>
+    </div>
+    <div id="sec-join" style="display:none">
+      <div class="join-row">
+        <input type="text" id="i-code" placeholder="Room code" maxlength="6" autocomplete="off">
+        <button class="btn-ghost" onclick="goJoin()">Join →</button>
+      </div>
+    </div>
+    <div class="st" id="status"></div>
+  </div>
+</div>
+
+<!-- ══ GAME ══ -->
+<div class="screen off" id="s-game">
+  <canvas id="three-canvas"></canvas>
+
+  <div class="topbar">
+    <div class="tb-logo">Kiln & Co.</div>
+    <div class="tb-r">
+      <div class="cpill"><div class="cdot" id="cdot"></div><span id="clbl">Solo</span></div>
+      <button class="fire-btn" onclick="fireKiln()">🔥 Fire the Kiln</button>
+    </div>
+  </div>
+
+  <div id="labels">
+    <div class="p-label" id="lbl-left" style="left:12%;bottom:38%">
+      <div class="pd" id="dot-left"></div><span id="name-left">You</span>
+    </div>
+    <div class="p-label" id="lbl-right" style="right:12%;bottom:38%">
+      <div class="pd" id="dot-right" style="background:#5b8ec4"></div><span id="name-right">Partner</span>
+    </div>
+  </div>
+
+  <!-- Input capture zones -->
+  <div id="drag-left"></div>
+  <div id="drag-right"></div>
+
+  <div class="hint-bar">Drag ↕ to pull & push · Drag ↔ to widen & narrow · Hold to smooth</div>
+</div>
+
+<!-- ══ KILN ══ -->
+<div class="screen off" id="s-kiln">
+  <div class="kiln-t">✦ Fired with love ✦</div>
+  <div class="polaroid">
+    <div class="pol-in">
+      <canvas id="pk-left" width="130" height="130"></canvas>
+      <canvas id="pk-right" width="130" height="130"></canvas>
+    </div>
+    <div class="pol-cap" id="pk-cap"></div>
+  </div>
+  <div class="kbtns">
+    <button class="btn-save" onclick="savePol()">💾 Save Keepsake</button>
+    <button class="btn-ghost" onclick="closeKiln()">Keep Shaping</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONSTANTS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SEGS    = 36;        // profile control points
+const MIN_R   = 0.04;
+const MAX_R   = 0.78;
+const POT_H   = 2.2;
+const SEG_H   = POT_H / SEGS;
+const LATHE_SEGS = 80;     // higher for glossy reflections to look good
+const WHEEL_R = 0.85;
+const CLAY_VOLUME_FACTOR = 0.7;
+const SMOOTH_SUBDIVS = 4;  // Catmull-Rom subdivisions between control points
+const SPRING_LERP = 0.32;  // how fast clay eases toward target shape
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// APP STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let myName='', myCol='#d45520', mode='solo';
+
+// Two pots: left=mine, right=partner
+const pots = {
+  left:  { profile: null, displayProfile: null, spin: 0, angle: 0, mesh: null, wheelMesh: null, col: '#d45520', touchSeg: -1 },
+  right: { profile: null, displayProfile: null, spin: 0, angle: 0, mesh: null, wheelMesh: null, col: '#5b8ec4', touchSeg: -1 }
+};
+
+let peer=null, conn=null;
+let sendT=null, raf=null;
+let actx=null, audioOn=false;
+
+// Input state (for left wheel only — mine)
+let drag=false, holdTimer=null, smoothMode=false;
+let prevX=0, prevY=0, startX=0, startY=0;
+let dragAccumX=0, dragAccumY=0; // accumulated movement for deadzone
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// THREE.JS SETUP
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let renderer, scene, camera, animId;
+let tableGroup, floorMesh, wallMesh;
+
+function initThree(){
+  const canvas = document.getElementById('three-canvas');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  renderer.setClearColor(0x1a1510);
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xeae4d8, 10, 22);
+
+  // Procedural environment map for glossy clay reflections
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0xf0d8b0); // warm ambient
+  // Warm gradient sphere
+  const envGeo = new THREE.SphereGeometry(10, 16, 12);
+  const envMat = new THREE.MeshBasicMaterial({ color:0xffe8c0, side:THREE.BackSide });
+  envScene.add(new THREE.Mesh(envGeo, envMat));
+  // Light spot from above
+  const spotGeo = new THREE.SphereGeometry(2, 8, 6);
+  const spotMat = new THREE.MeshBasicMaterial({ color:0xffffff });
+  const spot = new THREE.Mesh(spotGeo, spotMat);
+  spot.position.set(0, 8, 2); envScene.add(spot);
+  const cubeRT = new THREE.WebGLCubeRenderTarget(128);
+  const cubeCamera = new THREE.CubeCamera(0.1, 20, cubeRT);
+  cubeCamera.update(renderer, envScene);
+  scene.environment = cubeRT.texture;
+
+  // Camera — 3/4 view looking down at the table
+  camera = new THREE.PerspectiveCamera(48, 1, 0.1, 40);
+  camera.position.set(0, 5.2, 10.5);
+  camera.lookAt(0, 2.4, 0);
+
+  buildLights();
+  buildRoom();
+  buildWheels();
+  resizeRenderer();
+
+  renderer.setAnimationLoop(renderLoop);
+}
+
+function buildLights(){
+  // Warm ambient — lofi golden glow
+  const amb = new THREE.AmbientLight(0xffe8c0, 0.45);
+  scene.add(amb);
+
+  // Golden hour key light — soft warm from window side
+  const key = new THREE.DirectionalLight(0xffdfb0, 1.2);
+  key.position.set(-5, 7, 4);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.near = 0.5; key.shadow.camera.far = 25;
+  key.shadow.camera.left = -8; key.shadow.camera.right = 8;
+  key.shadow.camera.top = 8; key.shadow.camera.bottom = -8;
+  key.shadow.radius = 4;
+  scene.add(key);
+
+  // Soft cool fill — blue hour hint from right
+  const fill = new THREE.DirectionalLight(0xc8d8f0, 0.18);
+  fill.position.set(6, 3, 2);
+  scene.add(fill);
+
+  // Warm rim from behind 
+  const rim = new THREE.DirectionalLight(0xffa040, 0.15);
+  rim.position.set(0, 2, -6);
+  scene.add(rim);
+
+  // Pendant point lights above each wheel — warm honey tone
+  [[-2.2, 5.5, 0.3], [2.2, 5.5, 0.3]].forEach(pos => {
+    const pt = new THREE.PointLight(0xffd070, 0.9, 7);
+    pt.position.set(...pos);
+    scene.add(pt);
+  });
+}
+
+function buildRoom(){
+  // FLOOR — dark walnut — grounds the scene, distinct from table
+  const floorMat = new THREE.MeshStandardMaterial({ color:0x6a5040, roughness:0.88 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(22, 22), floorMat);
+  floor.rotation.x = -Math.PI/2; floor.position.y = 0;
+  floor.receiveShadow = true; scene.add(floor);
+
+  // Floor plank gaps
+  const gapMat = new THREE.MeshStandardMaterial({ color:0x4a3828, roughness:0.95 });
+  for(let i=-5; i<=5; i++){
+    const plank = new THREE.Mesh(new THREE.BoxGeometry(22, 0.005, 0.02), gapMat);
+    plank.position.set(0, 0.001, i*1.8); scene.add(plank);
+  }
+
+  // BACK WALL — soft warm cream, moved closer for flatter feel
+  const wallMat = new THREE.MeshStandardMaterial({ color:0xf2ebe0, roughness:0.95 });
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(22, 12), wallMat);
+  wall.position.set(0, 6, -5.5); wall.receiveShadow = true; scene.add(wall);
+
+  // Wainscoting — sage green accent
+  const wainMat = new THREE.MeshStandardMaterial({ color:0x8a9a78, roughness:0.82 });
+  const wain = new THREE.Mesh(new THREE.PlaneGeometry(22, 3.5), wainMat);
+  wain.position.set(0, 1.75, -5.48); scene.add(wain);
+  // Trim — darker sage
+  const trimMat = new THREE.MeshStandardMaterial({ color:0x6a7a60, roughness:0.8 });
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(22, 0.08, 0.06), trimMat);
+  trim.position.set(0, 3.5, -5.45); scene.add(trim);
+
+  // SIDE WALLS — fog colour so they vanish into background
+  const sideMat = new THREE.MeshStandardMaterial({color:0xeae4d8,roughness:.95});
+  const sideL = new THREE.Mesh(new THREE.PlaneGeometry(18, 12), sideMat);
+  sideL.rotation.y = Math.PI/2; sideL.position.set(-8, 6, -1); scene.add(sideL);
+  const sideR = new THREE.Mesh(new THREE.PlaneGeometry(18, 12), sideMat.clone());
+  sideR.rotation.y = -Math.PI/2; sideR.position.set(8, 6, -1); scene.add(sideR);
+
+  // TABLE — light natural oak, clearly different from dark floor
+  tableGroup = new THREE.Group(); scene.add(tableGroup);
+  const oakMat = new THREE.MeshStandardMaterial({ color:0xd4b88c, roughness:0.72 });
+  const oakEdge = new THREE.MeshStandardMaterial({ color:0xb89870, roughness:0.78 });
+
+  const top = new THREE.Mesh(new THREE.BoxGeometry(9, 0.22, 3.8), oakMat);
+  top.position.set(0, 2.0, 0.3);
+  top.castShadow = true; top.receiveShadow = true; tableGroup.add(top);
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(9.04, 0.06, 3.84), oakEdge);
+  edge.position.set(0, 1.88, 0.3); tableGroup.add(edge);
+
+  // Legs — slightly darker oak
+  const legMat = new THREE.MeshStandardMaterial({ color:0xa88060, roughness:0.8 });
+  [[-3.4, 1.8], [-3.4, -1.0], [3.4, 1.8], [3.4, -1.0]].forEach(([x,z]) => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.85, 0.25), legMat);
+    leg.position.set(x, 0.95, z); leg.castShadow = true; tableGroup.add(leg);
+  });
+
+  // Oval rug under the table — cozy!
+  const rugMat = new THREE.MeshStandardMaterial({ color:0xc8b8a0, roughness:0.95 });
+  const rug = new THREE.Mesh(new THREE.CircleGeometry(2.8, 32), rugMat);
+  rug.rotation.x = -Math.PI/2; rug.position.set(0, 0.005, 0.8);
+  rug.scale.set(1.6, 1, 1); rug.receiveShadow = true; scene.add(rug);
+  // Rug border ring
+  const rugBorder = new THREE.Mesh(new THREE.RingGeometry(2.6, 2.8, 32), 
+    new THREE.MeshStandardMaterial({color:0x8a9a78, roughness:0.9}));
+  rugBorder.rotation.x = -Math.PI/2; rugBorder.position.set(0, 0.006, 0.8);
+  rugBorder.scale.set(1.6, 1, 1); scene.add(rugBorder);
+
+  buildShelf();
+  buildCozyDecor();
+}
+
+function buildShelf(){
+  // White-painted shelves — Scandinavian lofi look
+  const shelfMat = new THREE.MeshStandardMaterial({ color:0xe8e4dc, roughness:.8 });
+
+  [-1.5, 3.2].forEach(sy => {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(7, 0.1, 0.55), shelfMat);
+    shelf.position.set(0, sy, -5.2); shelf.castShadow = true; shelf.receiveShadow = true;
+    scene.add(shelf);
+    // Brackets — sage to match wainscoting
+    const brMat = new THREE.MeshStandardMaterial({ color:0x8a9a78, roughness:.85 });
+    [-3, 0, 3].forEach(bx => {
+      const br = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.45), brMat);
+      br.position.set(bx, sy - 0.25, -5.18); scene.add(br);
+    });
+  });
+
+  // Pots on lower shelf — cute pastels
+  const potDefs = [
+    { col:0xf5c8b0, pts:[[0,0],[.08,0],[.14,.08],[.18,.22],[.15,.38],[.1,.5],[.12,.56],[.09,.6]] },
+    { col:0xb8d0e8, pts:[[0,0],[.1,0],[.16,.05],[.12,.18],[.08,.32],[.1,.42],[.08,.48]] },
+    { col:0xc8e0c0, pts:[[0,0],[.12,0],[.18,.1],[.22,.28],[.2,.44],[.14,.55],[.12,.62]] },
+    { col:0xe0c0d8, pts:[[0,0],[.07,0],[.1,.06],[.14,.2],[.18,.34],[.14,.45],[.1,.5]] },
+    { col:0xf8e0a8, pts:[[0,0],[.13,0],[.18,.08],[.2,.22],[.16,.4],[.1,.54],[.12,.6],[.1,.65]] },
+    { col:0xd0e0e8, pts:[[0,0],[.09,0],[.13,.06],[.1,.2],[.07,.38],[.09,.5],[.07,.56]] },
+  ];
+  potDefs.forEach((def, i) => {
+    const x = -2.8 + i * 1.12;
+    const pts = def.pts.map(([r,y2]) => new THREE.Vector2(r, y2));
+    const geo = new THREE.LatheGeometry(pts, 20);
+    const mat = new THREE.MeshStandardMaterial({ color:def.col, roughness:.78 });
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, -1.45, -5.2);
+    m.castShadow = true; scene.add(m);
+  });
+
+  // Pots on upper shelf — softer tones
+  const upperDefs = [
+    { col:0xf8e8c0, pts:[[0,0],[.15,0],[.22,.06],[.28,.12],[.26,.18],[.22,.22]] },
+    { col:0xc8d8f0, pts:[[0,0],[.07,0],[.1,.05],[.14,.18],[.18,.32],[.14,.44],[.1,.5]] },
+    { col:0xf0c0b8, pts:[[0,0],[.11,0],[.16,.08],[.14,.24],[.1,.4],[.12,.5],[.1,.58]] },
+    { col:0xd8f0c0, pts:[[0,0],[.08,0],[.14,.06],[.18,.2],[.22,.36],[.18,.5],[.14,.56],[.12,.62]] },
+  ];
+  upperDefs.forEach((def, i) => {
+    const x = -1.8 + i * 1.2;
+    const pts = def.pts.map(([r,y2]) => new THREE.Vector2(r, y2));
+    const geo = new THREE.LatheGeometry(pts, 20);
+    const mat = new THREE.MeshStandardMaterial({ color:def.col, roughness:.78 });
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, 3.25, -5.2);
+    m.castShadow = true; scene.add(m);
+  });
+}
+
+function buildCozyDecor(){
+  // ── STRING LIGHTS across the back wall ──
+  const stringY = 5.8, stringZ = -5.3;
+  const bulbGeo = new THREE.SphereGeometry(0.06, 8, 6);
+  const wireMat = new THREE.MeshStandardMaterial({color:0x3a2810,roughness:.9});
+  const bulbColors = [0xffeea0, 0xffd880, 0xffe0a8, 0xfff0b0, 0xffd090];
+  
+  // Wire
+  for(let i=-4; i<4; i++){
+    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,1.1,4), wireMat);
+    wire.rotation.z = Math.PI/2;
+    wire.position.set(i*1.0+0.5, stringY + Math.sin(i*0.8)*0.15, stringZ);
+    scene.add(wire);
+  }
+  // Bulbs with glow
+  for(let i=-4; i<=4; i++){
+    const x = i * 0.95;
+    const droop = Math.sin((i+4)*0.4)*0.2 + 0.1;
+    const col = bulbColors[Math.abs(i) % bulbColors.length];
+    const bMat = new THREE.MeshStandardMaterial({color:col, emissive:col, emissiveIntensity:1.5});
+    const b = new THREE.Mesh(bulbGeo, bMat);
+    b.position.set(x, stringY - droop, stringZ + 0.05); scene.add(b);
+    // Tiny warm point light for every other bulb
+    if(i % 2 === 0){
+      const pt = new THREE.PointLight(col, 0.15, 3);
+      pt.position.set(x, stringY - droop, stringZ + 0.1); scene.add(pt);
+    }
+  }
+
+  // ── TRAILING VINES from upper shelf ──
+  const vineMat = new THREE.MeshStandardMaterial({color:0x4a8838, roughness:.9});
+  const leafMat = new THREE.MeshStandardMaterial({color:0x5aa848, roughness:.85, side:THREE.DoubleSide});
+  const darkLeaf = new THREE.MeshStandardMaterial({color:0x3a7830, roughness:.85, side:THREE.DoubleSide});
+
+  // Several vines draping from shelf
+  [[-2.5, 3.2], [-0.8, 3.2], [1.4, 3.2], [3.0, 3.2], [-3.2, -1.5], [2.8, -1.5]].forEach(([vx, vy]) => {
+    const vineLen = 0.6 + Math.random() * 1.2;
+    const segs = Math.floor(vineLen * 5);
+    for(let j=0; j<segs; j++){
+      const t = j/segs;
+      const sway = Math.sin(t*3 + vx)*0.12;
+      // Vine stem
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.01,vineLen/segs,4), vineMat);
+      stem.position.set(vx + sway, vy - t*vineLen, -5.1);
+      stem.rotation.z = sway*0.3;
+      scene.add(stem);
+      // Leaves every 2-3 segments
+      if(j % 2 === 0){
+        const lMat = Math.random()>.5 ? leafMat : darkLeaf;
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.06,5,3), lMat);
+        leaf.scale.set(1, 0.2, 0.6);
+        leaf.position.set(vx + sway + (Math.random()-.5)*0.1, vy - t*vineLen, -5.05);
+        leaf.rotation.set(Math.random(), Math.random(), Math.random()*0.5);
+        scene.add(leaf);
+      }
+    }
+  });
+
+  // ── POTTED PLANT — bigger, more lush ──
+  const plantPotMat = new THREE.MeshStandardMaterial({ color:0xd08050, roughness:.82 });
+  const plantPot = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.4, 12), plantPotMat);
+  plantPot.position.set(-4.5, 0.2, -5.5); scene.add(plantPot);
+  // Pot rim
+  const rim2 = new THREE.Mesh(new THREE.CylinderGeometry(0.30,0.28,0.06,12), plantPotMat);
+  rim2.position.set(-4.5, 0.42, -5.5); scene.add(rim2);
+  const dirt = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.04, 12),
+    new THREE.MeshStandardMaterial({color:0x4a2810,roughness:1}));
+  dirt.position.set(-4.5, 0.42, -5.5); scene.add(dirt);
+  // Lush leaves
+  for(let i=0;i<12;i++){
+    const a = i*(Math.PI*2/12) + Math.random()*0.3;
+    const r = 0.12 + Math.random()*0.14;
+    const h = 0.5 + Math.random()*0.4;
+    const lMat = Math.random()>.4 ? leafMat : darkLeaf;
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.14 + Math.random()*0.08, 5, 3), lMat);
+    leaf.scale.set(1, 0.15, 0.55);
+    leaf.position.set(-4.5+Math.cos(a)*r, h, -5.5+Math.sin(a)*r);
+    leaf.rotation.set(Math.random()*0.3, a, Math.random()*0.4 - 0.2);
+    scene.add(leaf);
+  }
+
+  // ── SECOND PLANT on right side ──
+  const pot2 = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.16, 0.32, 12),
+    new THREE.MeshStandardMaterial({color:0xc8a878,roughness:.8}));
+  pot2.position.set(4.2, 0.16, -4.5); scene.add(pot2);
+  for(let i=0;i<8;i++){
+    const a = i*(Math.PI*2/8) + Math.random()*0.3;
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.1+Math.random()*0.06,5,3), leafMat);
+    leaf.scale.set(1,.15,.5);
+    leaf.position.set(4.2+Math.cos(a)*0.1, 0.4+Math.random()*0.25, -4.5+Math.sin(a)*0.1);
+    leaf.rotation.set(0,a,Math.random()*0.3); scene.add(leaf);
+  }
+
+  // ── PENDANT LAMPS — woven basket style ──
+  [-2.2, 2.2].forEach(x => {
+    const cordMat = new THREE.MeshStandardMaterial({color:0x3a2810,roughness:.9});
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,2.4,4), cordMat);
+    cord.position.set(x, 6.2, 0.3); scene.add(cord);
+    // Woven shade
+    const shadeMat = new THREE.MeshStandardMaterial({color:0xc8a060,roughness:.85,side:THREE.DoubleSide});
+    const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.2,0.45,12,1,true), shadeMat);
+    shade.position.set(x, 5.05, 0.3); scene.add(shade);
+    const shadeTop = new THREE.Mesh(new THREE.CircleGeometry(0.12,12), shadeMat);
+    shadeTop.rotation.x=-Math.PI/2; shadeTop.position.set(x,5.28,0.3); scene.add(shadeTop);
+    // Warm bulb
+    const bulbMat = new THREE.MeshStandardMaterial({color:0xffeea0,emissive:0xffc844,emissiveIntensity:2.5});
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8), bulbMat);
+    bulb.position.set(x, 5.0, 0.3); scene.add(bulb);
+    const pt = new THREE.PointLight(0xffd070, 1.2, 6);
+    pt.position.set(x, 5.0, 0.3); scene.add(pt);
+  });
+
+  // ── WINDOW — golden hour glow with frame ──
+  const frameMat = new THREE.MeshStandardMaterial({color:0x6a4820,roughness:.8});
+  // Frame
+  [[-1.3,3.5],[-1.3,3.5],[1.3,3.5],[0,2],[0,5]].forEach((_,i) => {
+    let w,h,px,py;
+    if(i<2){ w=0.12; h=3.2; px=-7.88; py=3.5; } // left bar
+    else if(i===2){ w=0.12; h=3.2; px=-7.88; py=3.5; } // (skip dup)
+    else return;
+  });
+  // Simpler window frame
+  const frameGeo = new THREE.BoxGeometry(0.08, 3.2, 0.08);
+  [[-1.25,3.5],[ 1.25,3.5]].forEach(([ox,oy])=>{
+    const f = new THREE.Mesh(frameGeo, frameMat);
+    f.rotation.y=Math.PI/2; f.position.set(-7.92, oy, -2+ox); scene.add(f);
+  });
+  const frameH = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 2.5), frameMat);
+  frameH.position.set(-7.92, 5.1, -2); scene.add(frameH);
+  const frameH2 = frameH.clone(); frameH2.position.y = 1.9; scene.add(frameH2);
+  const frameMid = frameH.clone(); frameMid.position.y = 3.5; scene.add(frameMid);
+
+  // Window glass — golden glow
+  const winMat = new THREE.MeshStandardMaterial({
+    color:0xf8e8c0, emissive:0xffc060, emissiveIntensity:0.5, roughness:.1, transparent:true, opacity:0.85
+  });
+  const win = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 3.2), winMat);
+  win.rotation.y=Math.PI/2; win.position.set(-7.95, 3.5, -2); scene.add(win);
+  // Window light beam
+  const beamPt = new THREE.PointLight(0xffd080, 0.6, 8);
+  beamPt.position.set(-6.5, 3.5, -2); scene.add(beamPt);
+
+  // ── CLAY TOOLS on table ──
+  const toolMat = new THREE.MeshStandardMaterial({color:0xa07840,roughness:.8});
+  const rp = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.1,12), toolMat);
+  rp.rotation.z=Math.PI/2; rp.position.set(0, 2.12, 1.8); scene.add(rp);
+  [-0.58,0.58].forEach(ox=>{
+    const h=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.14,8),toolMat);
+    h.rotation.z=Math.PI/2; h.position.set(ox,2.12,1.8); scene.add(h);
+  });
+  // Sponge — rounder
+  const sponge=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,6),
+    new THREE.MeshStandardMaterial({color:0xf0d868,roughness:.95}));
+  sponge.scale.set(1,.5,0.8); sponge.position.set(3.5, 2.14, 1.2); scene.add(sponge);
+
+  // ── WATER BUCKET — ceramic style ──
+  const bucket=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.22,0.5,16),
+    new THREE.MeshStandardMaterial({color:0xb8a080,roughness:.75}));
+  bucket.position.set(3.8,0.25,2.2); scene.add(bucket);
+  const water=new THREE.Mesh(new THREE.CylinderGeometry(0.27,0.27,0.04,16),
+    new THREE.MeshStandardMaterial({color:0x5098c8,roughness:.05,transparent:true,opacity:.75}));
+  water.position.set(3.8,0.52,2.2); scene.add(water);
+
+  // ── FLOATING DUST PARTICLES — stored for animation ──
+  window._dustParticles = [];
+  const dustMat = new THREE.MeshBasicMaterial({color:0xfff0c0, transparent:true, opacity:0.4});
+  for(let i=0; i<40; i++){
+    const d = new THREE.Mesh(new THREE.SphereGeometry(0.015+Math.random()*0.015, 4, 3), dustMat);
+    d.position.set(
+      (Math.random()-0.5)*12,
+      1.5 + Math.random()*5,
+      -4 + Math.random()*6
+    );
+    d.userData = { 
+      baseY: d.position.y, 
+      speed: 0.1 + Math.random()*0.15, 
+      phase: Math.random()*Math.PI*2,
+      drift: (Math.random()-0.5)*0.3
+    };
+    scene.add(d);
+    window._dustParticles.push(d);
+  }
+
+  // ── SMALL FLOWERS in a jar on the table ──
+  const jarMat = new THREE.MeshStandardMaterial({color:0xd0e8e0,roughness:.15,transparent:true,opacity:.7});
+  const jar = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.1,0.3,12), jarMat);
+  jar.position.set(-3.5, 2.27, 0.8); scene.add(jar);
+  const waterJ = new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.02,12),
+    new THREE.MeshStandardMaterial({color:0x88c0d0,roughness:.05,transparent:true,opacity:.6}));
+  waterJ.position.set(-3.5, 2.42, 0.8); scene.add(waterJ);
+  // Flower stems + blooms
+  const flowerCols = [0xf0a0a8, 0xf8d078, 0xc0a0e0, 0xf0c0c0, 0xa8d0f0];
+  for(let i=0;i<5;i++){
+    const a = i*(Math.PI*2/5)+Math.random()*0.3;
+    const stemH = 0.3+Math.random()*0.2;
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,stemH,4),
+      new THREE.MeshStandardMaterial({color:0x508838}));
+    const sx = -3.5+Math.cos(a)*0.05, sz = 0.8+Math.sin(a)*0.05;
+    stem.position.set(sx, 2.42+stemH/2, sz);
+    stem.rotation.set(Math.sin(a)*0.15, 0, Math.cos(a)*0.15);
+    scene.add(stem);
+    const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.04+Math.random()*0.02, 6, 5),
+      new THREE.MeshStandardMaterial({color:flowerCols[i], roughness:.7}));
+    bloom.position.set(sx+Math.sin(a)*0.02, 2.42+stemH+0.02, sz+Math.cos(a)*0.02);
+    scene.add(bloom);
+  }
+
+  // ── LITTLE CAT sleeping on floor near right table leg ──
+  const catMat = new THREE.MeshStandardMaterial({color:0xf0d8b0,roughness:.9});
+  // Body
+  const catBody = new THREE.Mesh(new THREE.SphereGeometry(0.22,8,6), catMat);
+  catBody.scale.set(1.4,0.7,0.9);
+  catBody.position.set(3.2, 0.15, 1.5); scene.add(catBody);
+  // Head
+  const catHead = new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6), catMat);
+  catHead.position.set(3.0, 0.18, 1.65); scene.add(catHead);
+  // Ears
+  const earMat = new THREE.MeshStandardMaterial({color:0xe0c098,roughness:.9});
+  [[-0.06,0.06],[0.06,0.06]].forEach(([ox,oz])=>{
+    const ear = new THREE.Mesh(new THREE.CylinderGeometry(0,0.04,0.08,4), earMat);
+    ear.position.set(3.0+ox, 0.3, 1.65+oz); scene.add(ear);
+  });
+  // Tail
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.015,0.35,6), catMat);
+  tail.position.set(3.45, 0.12, 1.35);
+  tail.rotation.set(0.3,0,Math.PI/2.5); scene.add(tail);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// WHEEL ASSEMBLIES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function buildWheels(){
+  // Left wheel (mine): x = -2.2, Right wheel (partner): x = 2.2
+  [['left', -2.2], ['right', 2.2]].forEach(([side, x]) => {
+    const g = new THREE.Group();
+    g.position.set(x, 2.09, 0.2);
+    scene.add(g);
+    pots[side].group = g;
+
+    // WHEEL DISC — flat cylinder, blue/slate
+    const discMat = new THREE.MeshStandardMaterial({
+      color: 0x4470b0, roughness: 0.4, metalness: 0.1
+    });
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.09, 48), discMat);
+    disc.castShadow = true; disc.receiveShadow = true;
+    g.add(disc);
+    pots[side].wheelMesh = disc;
+
+    // Disc top face — slightly lighter
+    const discTopMat = new THREE.MeshStandardMaterial({
+      color: 0x5888cc, roughness: 0.35, metalness: 0.1
+    });
+    const discTop = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.01, 48), discTopMat);
+    discTop.position.y = 0.05;
+    g.add(discTop);
+
+    // Grooves on disc top
+    for(let i=0; i<8; i++){
+      const angle = (i/8)*Math.PI*2;
+      const groove = new THREE.Mesh(
+        new THREE.BoxGeometry(0.015, 0.02, 0.7),
+        new THREE.MeshStandardMaterial({ color:0x2a4880, roughness:.5 })
+      );
+      groove.position.y = 0.055;
+      groove.rotation.y = angle;
+      g.add(groove);
+    }
+
+    // Pedestal
+    const pedMat = new THREE.MeshStandardMaterial({ color:0x1a3060, roughness:.7 });
+    const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.35, 24), pedMat);
+    ped.position.y = -0.22;
+    ped.castShadow = true;
+    g.add(ped);
+
+    // Pedestal base plate
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.68, 0.06, 24), pedMat);
+    base.position.y = -0.4;
+    g.add(base);
+
+    // Clay splash marks (flat discs of clay colour on wheel surface)
+    pots[side].splashGroup = new THREE.Group();
+    pots[side].splashGroup.position.y = 0.058;
+    g.add(pots[side].splashGroup);
+
+    // Init pot profile & mesh
+    pots[side].profile = makePot();
+    pots[side].displayProfile = makePot(); // display copy for springy lerp
+    buildPotMesh(side);
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// POT PROFILE & MESH
+// Profile = array of {r, y} — radius and height per segment
+// This lets height actually change when you pull/push
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function makePot(){
+  return Array.from({length:SEGS+1}, (_,i) => {
+    const t = i/SEGS;
+    // Start as a squat dome — like a centered lump of clay on the wheel
+    // Wide at base, gently tapering, not too tall
+    const bellCurve = Math.exp(-t*t*3.5); // fast falloff from base
+    const r = Math.max(MIN_R, 0.38 * (0.3 + 0.7 * bellCurve) + 0.08 * Math.sin(t * Math.PI));
+    const y = t * POT_H * 0.55; // start at ~55% of max height — room to grow
+    return { r, y };
+  });
+}
+
+// Catmull-Rom interpolation between control points for silky smooth silhouette
+function catmullRom(p0, p1, p2, p3, t){
+  const t2 = t*t, t3 = t2*t;
+  return 0.5 * ((2*p1) + (-p0+p2)*t + (2*p0-5*p1+4*p2-p3)*t2 + (-p0+3*p1-3*p2+p3)*t3);
+}
+
+function profileToPoints(profile){
+  const smooth = [];
+  for(let i=0; i<profile.length-1; i++){
+    const p0 = profile[Math.max(0, i-1)];
+    const p1 = profile[i];
+    const p2 = profile[Math.min(profile.length-1, i+1)];
+    const p3 = profile[Math.min(profile.length-1, i+2)];
+    for(let s=0; s<SMOOTH_SUBDIVS; s++){
+      const t = s/SMOOTH_SUBDIVS;
+      const r = Math.max(MIN_R, catmullRom(p0.r, p1.r, p2.r, p3.r, t));
+      const y = catmullRom(p0.y, p1.y, p2.y, p3.y, t);
+      smooth.push(new THREE.Vector2(Math.min(MAX_R, r), y));
+    }
+  }
+  const last = profile[profile.length-1];
+  smooth.push(new THREE.Vector2(Math.max(MIN_R, Math.min(MAX_R, last.r)), last.y));
+  
+  // CRITICAL: enforce monotonic Y in smoothed output
+  // Catmull-Rom can overshoot and create Y inversions which fold the lathe mesh
+  for(let i=1; i<smooth.length; i++){
+    if(smooth[i].y < smooth[i-1].y + 0.0005){
+      smooth[i].y = smooth[i-1].y + 0.0005;
+    }
+  }
+  return smooth;
+}
+
+function buildPotMesh(side){
+  const pot = pots[side];
+  if(pot.meshGroup){
+    pot.group.remove(pot.meshGroup);
+    pot.meshGroup.traverse(c=>{ if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); });
+  }
+
+  // Use display profile (springy) if available, else the direct profile
+  const useProfile = pot.displayProfile || pot.profile;
+  
+  const col = parseHex(pot.col);
+  // ── WET GLOSSY CLAY MATERIAL — the key visual upgrade ──
+  const clayMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(col.r/255, col.g/255, col.b/255),
+    roughness: 0.38,     // wet clay is semi-glossy
+    metalness: 0.08,     // slight metallic sheen from water
+    envMapIntensity: 0.6,
+  });
+  const darkMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(col.r/255*0.2, col.g/255*0.2, col.b/255*0.2),
+    roughness: 0.7, metalness: 0.05, side: THREE.BackSide,
+  });
+  const veryDarkMat = new THREE.MeshStandardMaterial({color:0x050302,roughness:1});
+
+  pot.meshGroup = new THREE.Group();
+  pot.meshGroup.position.y = 0.055;
+
+  // Lathe body — using Catmull-Rom smoothed profile
+  const points = profileToPoints(useProfile);
+  const lathGeo = new THREE.LatheGeometry(points, LATHE_SEGS);
+  lathGeo.computeVertexNormals();
+  pot.mesh = new THREE.Mesh(lathGeo, clayMat);
+  pot.mesh.castShadow = true; pot.mesh.receiveShadow = true;
+  pot.meshGroup.add(pot.mesh);
+
+  // Bottom cap
+  const botGeo = new THREE.CircleGeometry(useProfile[0].r, LATHE_SEGS);
+  const botMesh = new THREE.Mesh(botGeo, clayMat);
+  botMesh.rotation.x = -Math.PI/2;
+  botMesh.position.y = useProfile[0].y;
+  pot.meshGroup.add(botMesh);
+
+  // Rim ring
+  const topIdx = useProfile.length-1;
+  const topR = useProfile[topIdx].r;
+  const topY = useProfile[topIdx].y;
+  const wallT = Math.min(0.06, topR * 0.14);
+  const innerR = Math.max(0.01, topR - wallT);
+  if(topR > 0.05){
+    const rimShape = new THREE.Shape();
+    rimShape.absarc(0,0,topR,0,Math.PI*2,false);
+    const hole = new THREE.Path();
+    hole.absarc(0,0,innerR,0,Math.PI*2,true);
+    rimShape.holes.push(hole);
+    const rimGeo = new THREE.ShapeGeometry(rimShape, 24);
+    const rimMesh = new THREE.Mesh(rimGeo, clayMat);
+    rimMesh.rotation.x = -Math.PI/2;
+    rimMesh.position.y = topY;
+    pot.meshGroup.add(rimMesh);
+  }
+
+  // Interior walls
+  const innerH = Math.min(0.5, topY * 0.3);
+  if(innerR > 0.02 && innerH > 0.02){
+    const innerCyl = new THREE.Mesh(
+      new THREE.CylinderGeometry(innerR*0.98, innerR*0.85, innerH, LATHE_SEGS, 1, true),
+      darkMat
+    );
+    innerCyl.position.y = topY - innerH/2;
+    pot.meshGroup.add(innerCyl);
+
+    const innerFloor = new THREE.Mesh(new THREE.CircleGeometry(innerR*0.85, 24), veryDarkMat);
+    innerFloor.rotation.x = Math.PI/2;
+    innerFloor.position.y = topY - innerH + 0.001;
+    pot.meshGroup.add(innerFloor);
+  }
+
+  // ── TOUCH INDICATOR — glowing ring showing where you're shaping ──
+  if(pot.touchSeg >= 0 && pot.touchSeg <= SEGS){
+    const ti = pot.touchSeg;
+    const tr = useProfile[Math.min(ti * SMOOTH_SUBDIVS, useProfile.length-1)].r;
+    const ty = useProfile[Math.min(ti * SMOOTH_SUBDIVS, useProfile.length-1)].y;
+    if(tr > MIN_R + 0.01){
+      const ringGeo = new THREE.TorusGeometry(tr + 0.015, 0.008, 8, LATHE_SEGS);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff, transparent: true, opacity: 0.45
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI/2;
+      ring.position.y = ty;
+      pot.meshGroup.add(ring);
+    }
+  }
+
+  pot.group.add(pot.meshGroup);
+  updateSplash(side);
+}
+
+function rebuildPotMesh(side){
+  buildPotMesh(side);
+}
+
+function updateSplash(side){
+  const pot = pots[side];
+  const sg = pot.splashGroup;
+  while(sg.children.length) sg.remove(sg.children[0]);
+  const col = parseHex(pot.col);
+  const mat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(col.r/255*.8, col.g/255*.8, col.b/255*.8),
+    roughness:.9
+  });
+  for(let i=0;i<6;i++){
+    const a = i*1.05, r = 0.3+Math.sin(i*1.7)*0.25;
+    const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.04+i*.015,0.05+i*.015,0.01,8), mat);
+    sp.position.set(Math.cos(a)*r, 0, Math.sin(a)*r);
+    sg.add(sp);
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER LOOP
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let rebuildNeeded = { left:false, right:false };
+
+let _time = 0;
+function renderLoop(){
+  _time += 0.016;
+  
+  ['left','right'].forEach(side => {
+    const p = pots[side];
+    p.angle += p.spin * 0.018;
+    p.spin *= 0.9962;
+    if(p.group) p.group.rotation.y = p.angle;
+
+    // ── SPRINGY DEFORMATION: display profile lerps toward target profile ──
+    if(p.profile && p.displayProfile){
+      let changed = false;
+      for(let i=0; i<=SEGS; i++){
+        const dr = p.profile[i].r - p.displayProfile[i].r;
+        const dy = p.profile[i].y - p.displayProfile[i].y;
+        if(Math.abs(dr) > 0.0005 || Math.abs(dy) > 0.0005){
+          p.displayProfile[i].r += dr * SPRING_LERP;
+          p.displayProfile[i].y += dy * SPRING_LERP;
+          changed = true;
+        }
+      }
+      if(changed) rebuildNeeded[side] = true;
+    }
+
+    if(rebuildNeeded[side]){
+      rebuildPotMesh(side);
+      rebuildNeeded[side] = false;
+    }
+    
+    // Fade touch indicator when not dragging
+    if(!drag && p.touchSeg >= 0){
+      p.touchSeg = -1;
+      rebuildNeeded[side] = true;
+    }
+  });
+  
+  // Animate floating dust
+  if(window._dustParticles){
+    window._dustParticles.forEach(d => {
+      const u = d.userData;
+      d.position.y = u.baseY + Math.sin(_time * u.speed + u.phase) * 0.3;
+      d.position.x += u.drift * 0.001;
+      if(d.position.x > 7) d.position.x = -7;
+      if(d.position.x < -7) d.position.x = 7;
+    });
+  }
+
+  renderer.render(scene, camera);
+}
+
+function scheduleRebuild(side){
+  rebuildNeeded[side] = true;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RESIZE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function resizeRenderer(){
+  const W = window.innerWidth, H = window.innerHeight;
+  renderer.setSize(W, H);
+  camera.aspect = W/H;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resizeRenderer);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PROFILE SHAPING — volume-conserving clay physics
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// Gaussian falloff — smoother than cosine, feels more like real clay
+function gauss(dist, sigma){ return Math.exp(-(dist*dist)/(2*sigma*sigma)); }
+
+// Compute approximate volume of the pot (sum of cylindrical slices)
+function computeVolume(profile){
+  let v = 0;
+  for(let i=0; i<profile.length-1; i++){
+    const r1 = profile[i].r, r2 = profile[i+1].r;
+    const dy = profile[i+1].y - profile[i].y;
+    v += Math.PI * ((r1*r1 + r2*r2 + r1*r2)/3) * Math.max(dy, 0.001);
+  }
+  return v;
+}
+
+function smoothProfile(profile, ci, radius=4){
+  for(let i=Math.max(1,ci-radius); i<=Math.min(SEGS-1,ci+radius); i++){
+    const w = gauss(i-ci, radius*0.6);
+    if(w < 0.01) continue;
+    if(profile[i-1] && profile[i+1])
+      profile[i].r = profile[i].r*(1 - w*0.1) + (profile[i-1].r+profile[i+1].r)/2*(w*0.1);
+  }
+}
+function globalSmooth(profile){
+  for(let i=1;i<profile.length-1;i++)
+    profile[i].r = profile[i].r*0.88 + (profile[i-1].r+profile[i+1].r)/2*0.12;
+}
+
+// Enforce physical constraints on the profile
+function enforceConstraints(profile){
+  // 1. Base stays grounded on the wheel
+  profile[0].y = 0;
+  profile[0].r = Math.max(MIN_R, Math.min(MAX_R, profile[0].r));
+  
+  // 2. All radii within bounds, clamped to wheel
+  for(let i=0; i<=SEGS; i++){
+    profile[i].r = Math.max(MIN_R, Math.min(MAX_R, profile[i].r));
+  }
+  
+  // 3. Heights must be monotonically increasing (no inversions)
+  for(let i=1; i<=SEGS; i++){
+    profile[i].y = Math.max(profile[i].y, profile[i-1].y + 0.002);
+  }
+  
+  // 4. Cap max height
+  for(let i=0; i<=SEGS; i++){
+    profile[i].y = Math.min(POT_H, profile[i].y);
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INPUT — project 3D pot bounds to screen, map touch Y precisely
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INPUT — Pottery Master-style interaction
+// Key insight: finger Y maps to pot height DYNAMICALLY (recalculated every frame)
+// Drag direction relative to pot center determines push out / pull in
+// Vertical swipes through center stretch/compress the whole form
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function worldToScreen(wx, wy, wz){
+  const v = new THREE.Vector3(wx, wy, wz).project(camera);
+  return { x:(v.x+1)/2*window.innerWidth, y:(-v.y+1)/2*window.innerHeight };
+}
+
+// DYNAMIC: returns screen Y for each segment based on CURRENT pot profile
+function getSegmentScreenY(side){
+  const gx = side==='left' ? -2.2 : 2.2;
+  const baseWorldY = 2.09 + 0.055;
+  const gz = 0.2;
+  const prof = pots[side].displayProfile || pots[side].profile;
+  const arr = [];
+  for(let i=0; i<=SEGS; i++){
+    const sy = worldToScreen(gx, baseWorldY + prof[i].y, gz).y;
+    arr.push(sy);
+  }
+  return arr; // arr[0]=base screen Y (bottom, large Y), arr[SEGS]=top screen Y (small Y)
+}
+
+// Find the pot centerline X on screen
+function getPotCenterScreenX(side){
+  const gx = side==='left' ? -2.2 : 2.2;
+  return worldToScreen(gx, 2.09 + 0.055 + 0.5, 0.2).x;
+}
+
+// Map screen Y to the closest segment index using live pot shape
+function screenYToSegment(screenY, segScreenYs){
+  let best = 0, bestDist = Infinity;
+  for(let i=0; i<=SEGS; i++){
+    const d = Math.abs(segScreenYs[i] - screenY);
+    if(d < bestDist){ bestDist = d; best = i; }
+  }
+  return best;
+}
+
+// Also allow extrapolation above the pot top — crucial for tall pots
+function screenYToSegmentExtrap(screenY, segScreenYs){
+  const topSY = segScreenYs[SEGS];   // screen Y of top (smallest value)
+  const baseSY = segScreenYs[0];      // screen Y of base (largest value)
+  
+  // If cursor is above the top of the pot, extrapolate
+  if(screenY < topSY){
+    // How far above the top? Map proportionally
+    const segHeight = (baseSY - topSY) / SEGS;
+    if(segHeight > 0.5){
+      const extraSegs = (topSY - screenY) / segHeight;
+      return Math.min(SEGS, Math.round(SEGS + extraSegs));
+    }
+    return SEGS;
+  }
+  // If below base, clamp to 0
+  if(screenY > baseSY) return 0;
+  
+  return screenYToSegment(screenY, segScreenYs);
+}
+
+function bindInput(){
+  const el = document.getElementById('drag-left');
+  el.addEventListener('mousedown', e=>startDrag(e.clientX, e.clientY));
+  el.addEventListener('mousemove', e=>{ if(drag) onDrag(e.clientX, e.clientY); });
+  el.addEventListener('mouseup', endDrag);
+  el.addEventListener('mouseleave', endDrag);
+  el.addEventListener('touchstart', e=>{ e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); },{passive:false});
+  el.addEventListener('touchmove',  e=>{ e.preventDefault(); if(drag) onDrag(e.touches[0].clientX, e.touches[0].clientY); },{passive:false});
+  el.addEventListener('touchend',   e=>{ e.preventDefault(); endDrag(); },{passive:false});
+}
+
+function startDrag(cx, cy){
+  drag = true; smoothMode = false;
+  prevX = cx; prevY = cy; startX = cx; startY = cy;
+  dragAccumX = 0; dragAccumY = 0;
+  pots.left.spin = Math.max(pots.left.spin, 4);
+  holdTimer = setTimeout(()=>{ smoothMode = true; }, 480);
+  touchSnd();
+}
+
+function onDrag(cx, cy){
+  clearTimeout(holdTimer); holdTimer = null;
+  const dx = cx - prevX;
+  const dy = cy - prevY;
+  dragAccumX += Math.abs(dx);
+  dragAccumY += Math.abs(dy);
+  
+  // Spin the wheel based on horizontal motion
+  pots.left.spin = Math.min(16, pots.left.spin + Math.abs(dx) * 0.06);
+  
+  // ── DYNAMIC segment mapping ──
+  const segYs = getSegmentScreenY('left');
+  const ci = screenYToSegmentExtrap(cy, segYs);
+  const prevCi = screenYToSegmentExtrap(prevY, segYs);
+  
+  // Touch indicator — show where you're shaping
+  pots.left.touchSeg = ci;
+  
+  if(smoothMode){
+    smoothProfile(pots.left.profile, ci, 5);
+    enforceConstraints(pots.left.profile);
+    scheduleRebuild('left'); bcast();
+    prevX = cx; prevY = cy; return;
+  }
+  
+  // Deadzone
+  if(dragAccumX + dragAccumY < 3){ prevX = cx; prevY = cy; return; }
+  
+  const profile = pots.left.profile;
+  const volBefore = computeVolume(profile);
+  
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // TIGHT LOCAL INFLUENCE + SWEEP INTERPOLATION
+  // 
+  // The key insight: when the cursor moves from prevY to cy, it may 
+  // sweep across many segments in one frame. We interpolate and apply 
+  // deformation at EACH segment along the path, with a TIGHT Gaussian 
+  // so only 2-3 neighbours are affected at each point.
+  //
+  // This means: drag an S-shape and you get an S-shaped pot.
+  // Touch the middle and drag left → only the middle widens.
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ADAPTIVE LOCAL INFLUENCE
+  // 
+  // sigma scales with pot height — taller pot = tighter touch
+  // This is the key fix: a 36-segment pot at full height should NOT
+  // have the same sigma as a squat lump. We measure the actual
+  // world-height of the pot and scale sigma proportionally.
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  const actualH = profile[SEGS].y - profile[0].y;
+  const startH = POT_H * 0.55; // the initial pot height from makePot
+  const heightRatio = Math.max(0.5, actualH / Math.max(startH, 0.1));
+  
+  // Base sigma=1.2 for a fresh pot, shrinks to ~0.7 for a fully stretched pot
+  const sigma = Math.max(0.6, 1.2 / heightRatio);
+  const reach = Math.max(3, Math.round(sigma * 2.5));
+
+  // Determine sweep interpolation
+  const segMin = Math.max(0, Math.min(ci, prevCi));
+  const segMax = Math.min(SEGS, Math.max(ci, prevCi));
+  const segSpan = segMax - segMin;
+  
+  // How many interpolation steps? At least 1 (for small moves), 
+  // up to the number of segments swept (for big sweeps)
+  const steps = Math.max(1, segSpan);
+  
+  // Scale the per-step effect so total effect is consistent regardless of speed
+  // Fast sweeps = many steps but smaller each; slow precise = few steps but stronger
+  const stepScale = 1.0 / Math.max(1, steps);
+  
+  for(let s = 0; s <= steps; s++){
+    const t = steps === 0 ? 1 : s / steps;
+    const interpCi = Math.round(prevCi + (ci - prevCi) * t);
+    const interpDx = dx * stepScale; // spread the dx across steps
+    const interpDy = dy * stepScale; // spread the dy across steps
+    
+    // ── RADIAL SHAPING at this interpolated point ──
+    if(Math.abs(dx) > 0.2){
+      const sensitivity = MAX_R / (window.innerWidth * 0.28);
+      const delta = interpDx * sensitivity;
+      
+      for(let i = Math.max(0, interpCi - reach); i <= Math.min(SEGS, interpCi + reach); i++){
+        const w = gauss(i - interpCi, sigma);
+        if(w < 0.01) continue;
+        profile[i].r = Math.max(MIN_R, Math.min(MAX_R, profile[i].r + delta * w));
+      }
+    }
+    
+    // ── HEIGHT SHAPING at this interpolated point ──
+    if(Math.abs(dy) > 0.2){
+      const topSY = segYs[SEGS], baseSY = segYs[0];
+      const potPixelH = Math.max(baseSY - topSY, 60);
+      const sensitivity = POT_H / potPixelH;
+      
+      if(dy < 0){
+        // PULL UP
+        const pull = -interpDy * sensitivity * 0.9;
+        for(let i = Math.max(1, interpCi - reach); i <= SEGS; i++){
+          let w;
+          if(i >= interpCi){
+            w = gauss(i - interpCi, sigma * 1.8) * 0.6;
+            w = Math.max(w, 0.12); // top segments always move a bit
+          } else {
+            w = gauss(i - interpCi, sigma * 0.4) * 0.04;
+          }
+          profile[i].y = Math.min(POT_H, profile[i].y + pull * w);
+        }
+        // Compensatory narrowing — tight around stretch zone
+        for(let i = Math.max(1, interpCi - reach); i <= Math.min(SEGS, interpCi + reach); i++){
+          const w = gauss(i - interpCi, sigma);
+          profile[i].r = Math.max(MIN_R, profile[i].r - pull * w * 0.04);
+        }
+        
+      } else {
+        // PUSH DOWN
+        const push = interpDy * sensitivity * 0.6;
+        for(let i = Math.max(0, interpCi - reach); i <= SEGS; i++){
+          let w;
+          if(i <= interpCi){
+            w = gauss(i - interpCi, sigma * 0.8) * 0.4;
+          } else {
+            w = gauss(i - interpCi, sigma * 1.2) * 0.6;
+          }
+          profile[i].y = Math.max(0, profile[i].y - push * w);
+        }
+        // Compensatory widening
+        for(let i = Math.max(0, interpCi - reach); i <= Math.min(SEGS, interpCi + reach); i++){
+          const w = gauss(i - interpCi, sigma);
+          profile[i].r = Math.min(MAX_R, profile[i].r + push * w * 0.03);
+        }
+      }
+    }
+  }
+  
+  // ── VOLUME CONSERVATION ──
+  enforceConstraints(profile);
+  const volAfter = computeVolume(profile);
+  if(volAfter > 0.001 && volBefore > 0.001){
+    const ratio = Math.pow(volBefore / volAfter, CLAY_VOLUME_FACTOR * 0.5);
+    const clampedRatio = Math.max(0.94, Math.min(1.06, ratio));
+    for(let i = 0; i <= SEGS; i++){
+      profile[i].r = Math.max(MIN_R, Math.min(MAX_R, profile[i].r * clampedRatio));
+    }
+  }
+  
+  enforceConstraints(profile);
+  scheduleRebuild('left'); bcast();
+  prevX = cx; prevY = cy;
+}
+
+function endDrag(){
+  drag = false; smoothMode = false;
+  dragAccumX = 0; dragAccumY = 0;
+  clearTimeout(holdTimer); holdTimer = null;
+  // Gentle smooth on release for that nice pottery feel
+  globalSmooth(pots.left.profile);
+  globalSmooth(pots.left.profile); // double smooth for extra polish
+  enforceConstraints(pots.left.profile);
+  scheduleRebuild('left'); bcast();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UI / LANDING
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+document.querySelectorAll('.sw[data-c]').forEach(s=>{
+  s.onclick=()=>{ document.querySelectorAll('.sw').forEach(x=>x.classList.remove('on')); s.classList.add('on'); myCol=s.dataset.c; };
+});
+document.getElementById('ci').oninput=e=>{
+  myCol=e.target.value;
+  document.querySelectorAll('.sw').forEach(x=>x.classList.remove('on'));
+  e.target.closest('.sw').classList.add('on');
+};
+function setMode(m,el){
+  mode=m;
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('on')); el.classList.add('on');
+  ['sec-solo','sec-host','sec-join'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('sec-'+m).style.display='';
+}
+function setSt(msg,cls=''){const e=document.getElementById('status');e.textContent=msg;e.className='st '+cls;}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// GAME LAUNCH
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function goSolo(){
+  myName = document.getElementById('i-name').value.trim() || 'Potter';
+  pots.left.col = myCol;
+  pots.right.col = '#5b8ec4';
+  launch(false);
+  // Demo auto-shape partner
+  setInterval(()=>{
+    pots.right.spin = Math.min(pots.right.spin+0.04, 2.2);
+    const i = 1+Math.floor(Math.random()*(SEGS-2));
+    pots.right.profile[i].r = Math.min(MAX_R, Math.max(MIN_R, pots.right.profile[i].r+(Math.random()-.46)*0.015));
+    if(Math.random()<.2) smoothProfile(pots.right.profile, i, 2);
+    enforceConstraints(pots.right.profile);
+    scheduleRebuild('right');
+  }, 200);
+}
+
+function goHost(){
+  myName=document.getElementById('i-name').value.trim()||'Potter';
+  if(!myName){setSt('Enter your name','err');return;}
+  document.getElementById('btn-host').disabled=true; setSt('Setting up…');
+  loadPeer(()=>{
+    const code=rndCode();
+    peer=new Peer('kilnco-'+code,pcfg());
+    peer.on('open',()=>{
+      document.getElementById('cbox').style.display='';
+      document.getElementById('cval').textContent=code;
+      document.getElementById('btn-host').textContent='Waiting…';
+      setSt('Share code: '+code);
+    });
+    peer.on('connection',c=>{conn=c;onConn();});
+    peer.on('error',e=>{setSt('Error: '+e.type,'err');document.getElementById('btn-host').disabled=false;});
+  });
+}
+function goJoin(){
+  myName=document.getElementById('i-name').value.trim()||'Potter';
+  const code=document.getElementById('i-code').value.trim().toUpperCase();
+  if(!myName){setSt('Enter your name','err');return;}
+  if(!code){setSt('Enter the room code','err');return;}
+  setSt('Connecting…');
+  loadPeer(()=>{
+    peer=new Peer(undefined,pcfg());
+    peer.on('open',()=>{
+      conn=peer.connect('kilnco-'+code,{reliable:false,serialization:'json'});
+      conn.on('open',onConn);
+      conn.on('error',()=>setSt('Room not found.','err'));
+    });
+    peer.on('error',()=>setSt('Connection failed.','err'));
+  });
+}
+function pcfg(){return{host:'0.peerjs.com',secure:true,port:443,path:'/',config:{iceServers:[{urls:'stun:stun.l.google.com:19302'}]}};}
+function loadPeer(cb){
+  if(window.Peer){cb();return;}
+  const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
+  s.onload=cb; s.onerror=()=>setSt('Network unavailable.','err'); document.head.appendChild(s);
+}
+function rndCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:4},()=>c[Math.floor(Math.random()*c.length)]).join('');}
+
+function onConn(){
+  pots.left.col=myCol; pots.right.col='#5b8ec4';
+  send({type:'intro',name:myName,col:myCol});
+  conn.on('data',onData);
+  conn.on('close',()=>{document.getElementById('cdot').className='cdot';document.getElementById('clbl').textContent='Disconnected';});
+  launch(true);
+}
+function onData(d){
+  if(d.type==='intro'){
+    pots.right.col=d.col;
+    updateRightMaterial();
+    document.getElementById('name-right').textContent=d.name;
+    document.getElementById('dot-right').style.background=d.col;
+    document.getElementById('cdot').className='cdot live';
+    document.getElementById('clbl').textContent=d.name+' is here';
+    if(mode==='join') send({type:'intro',name:myName,col:myCol});
+  } else if(d.type==='pot'){
+    pots.right.profile=d.profile;
+    if(!pots.right.displayProfile) pots.right.displayProfile = JSON.parse(JSON.stringify(d.profile));
+    pots.right.spin=d.spin||0;
+    scheduleRebuild('right');
+  } else if(d.type==='kiln'){
+    showKiln();
+  }
+}
+function updateRightMaterial(){
+  buildPotMesh('right');
+}
+function send(d){if(conn&&conn.open)try{conn.send(d);}catch(e){}}
+function bcast(){clearTimeout(sendT);sendT=setTimeout(()=>send({type:'pot',profile:pots.left.profile,spin:pots.left.spin}),30);}
+
+function launch(online){
+  document.getElementById('s-land').classList.add('off');
+  document.getElementById('s-game').classList.remove('off');
+
+  // Update left pot colour
+  pots.left.col = myCol;
+  buildPotMesh('left');
+  buildPotMesh('right');
+
+  document.getElementById('name-left').textContent = myName;
+  document.getElementById('dot-left').style.background = myCol;
+
+  if(!online){
+    document.getElementById('cdot').className='cdot live';
+    document.getElementById('clbl').textContent='Solo';
+    document.getElementById('name-right').textContent='Demo Potter';
+  } else {
+    document.getElementById('cdot').className='cdot wait';
+    document.getElementById('clbl').textContent='Connected';
+  }
+
+  bindInput();
+  initAudio();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// KILN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function fireKiln(){ send({type:'kiln'}); showKiln(); }
+
+function showKiln(){
+  document.getElementById('s-kiln').classList.remove('off');
+  renderPotToCanvas('pk-left',  pots.left.profile,  pots.left.col);
+  renderPotToCanvas('pk-right', pots.right.profile, pots.right.col);
+  const pn = document.getElementById('name-right').textContent;
+  const d = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('pk-cap').textContent = `${myName} & ${pn} · ${d}`;
+  playKilnSound();
+}
+
+function renderPotToCanvas(id, profile, colStr){
+  const cv = document.getElementById(id);
+  cv.width=130; cv.height=130;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle='#e8d9bc'; ctx.fillRect(0,0,130,130);
+
+  const col = parseHex(colStr);
+  const [r,g,b] = [col.r, col.g, col.b];
+  const cx=65, baseY=118;
+  const maxR = Math.max(...profile.map(p=>p.r));
+  const maxH = Math.max(...profile.map(p=>p.y));
+  const availH = 95, availR = 50;
+  const scH = availH / Math.max(maxH, 0.01);
+  const scR = availR / Math.max(maxR, 0.01);
+  const sc = Math.min(scH, scR) * 0.9;
+
+  const f=(v,a)=>Math.min(255,Math.max(0,Math.round(v*a)));
+
+  // Shadow
+  const sh = ctx.createRadialGradient(cx,baseY,0,cx,baseY,profile[0].r*sc*1.4);
+  sh.addColorStop(0,'rgba(0,0,0,.3)'); sh.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.ellipse(cx,baseY,profile[0].r*sc*1.4,profile[0].r*sc*.28,0,0,Math.PI*2);
+  ctx.fillStyle=sh; ctx.fill();
+
+  // Pot body
+  ctx.beginPath();
+  ctx.moveTo(cx+profile[0].r*sc, baseY);
+  for(let i=1;i<=SEGS;i++) ctx.lineTo(cx+profile[i].r*sc, baseY - profile[i].y*sc);
+  for(let i=SEGS;i>=0;i--) ctx.lineTo(cx-profile[i].r*sc, baseY - profile[i].y*sc);
+  ctx.closePath();
+
+  const topY2 = baseY - profile[SEGS].y*sc;
+  const bg = ctx.createLinearGradient(cx-maxR*sc, 0, cx+maxR*sc, 0);
+  bg.addColorStop(0,   `rgb(${f(r,.45)},${f(g,.45)},${f(b,.45)})`);
+  bg.addColorStop(.2,  `rgb(${f(r,.8)},${f(g,.8)},${f(b,.8)})`);
+  bg.addColorStop(.38, `rgb(${f(r,1.15)},${f(g,1.12)},${f(b,1.0)})`);
+  bg.addColorStop(.58, `rgb(${r},${g},${b})`);
+  bg.addColorStop(.8,  `rgb(${f(r,.78)},${f(g,.78)},${f(b,.78)})`);
+  bg.addColorStop(1,   `rgb(${f(r,.45)},${f(g,.45)},${f(b,.45)})`);
+  ctx.fillStyle=bg; ctx.fill();
+
+  // Top opening
+  const tr=profile[SEGS].r*sc, ty=topY2;
+  if(tr>3){
+    ctx.beginPath(); ctx.ellipse(cx,ty,tr,tr*.24,0,0,Math.PI*2);
+    ctx.fillStyle=`rgb(${f(r,.6)},${f(g,.6)},${f(b,.6)})`; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx,ty,tr*.72,tr*.17,0,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fill();
+  }
+}
+
+function closeKiln(){ document.getElementById('s-kiln').classList.add('off'); }
+
+function savePol(){
+  const W=460, PH=320;
+  const out=document.createElement('canvas'); out.width=W; out.height=PH+55;
+  const ctx=out.getContext('2d');
+  ctx.fillStyle='#fdfaf4'; ctx.fillRect(0,0,W,PH+55);
+  ctx.fillStyle='#e8d9bc'; ctx.fillRect(14,14,W-28,PH-28);
+
+  [['pk-left',22],['pk-right',238]].forEach(([id,x])=>{
+    const src=document.getElementById(id);
+    ctx.drawImage(src,x,16,195,208);
+  });
+
+  ctx.font='20px serif'; ctx.fillStyle='#c05828'; ctx.textAlign='center'; ctx.fillText('♥',W/2,PH-4);
+  ctx.font="15px Georgia,serif"; ctx.fillStyle='#5a3a20';
+  ctx.fillText(document.getElementById('pk-cap').textContent, W/2, PH+32);
+  const a=document.createElement('a'); a.download='kiln-and-co.png'; a.href=out.toDataURL(); a.click();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// COLOUR HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function parseHex(s){
+  if(!s) return {r:212,g:85,b:32};
+  s=s.trim();
+  const m=s.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if(m) return {r:+m[1],g:+m[2],b:+m[3]};
+  const h=s.replace('#','');
+  if(h.length===3) return {r:parseInt(h[0]+h[0],16),g:parseInt(h[1]+h[1],16),b:parseInt(h[2]+h[2],16)};
+  if(h.length===6) return {r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)};
+  return {r:212,g:85,b:32};
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AUDIO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initAudio(){
+  if(audioOn)return; audioOn=true;
+  try{
+    actx=new(window.AudioContext||window.webkitAudioContext)();
+    
+    // ── LOFI PAD: Fmaj7 chord (F A C E) — warm and jazzy ──
+    const padNotes = [174.6, 220, 261.6, 329.6]; // F3 A3 C4 E4
+    padNotes.forEach((f,i)=>{
+      const o=actx.createOscillator(),g=actx.createGain();
+      const filt=actx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=600;
+      o.type='triangle'; o.frequency.value=f; g.gain.value=0;
+      o.connect(filt); filt.connect(g); g.connect(actx.destination);
+      o.start(); g.gain.setTargetAtTime(0.012 + i*0.003, actx.currentTime, 4);
+    });
+    
+    // ── VINYL CRACKLE — gentle high-freq noise ──
+    const crackBuf=actx.createBuffer(1,actx.sampleRate*3,actx.sampleRate);
+    const cd=crackBuf.getChannelData(0);
+    for(let i=0;i<cd.length;i++) cd[i]=(Math.random()*2-1) * (Math.random()>.97 ? 1 : 0.02);
+    const crackSrc=actx.createBufferSource(); crackSrc.buffer=crackBuf; crackSrc.loop=true;
+    const crackFilt=actx.createBiquadFilter(); crackFilt.type='highpass'; crackFilt.frequency.value=3000;
+    const crackGain=actx.createGain(); crackGain.gain.value=0.008;
+    crackSrc.connect(crackFilt); crackFilt.connect(crackGain); crackGain.connect(actx.destination); crackSrc.start();
+    
+    // ── SOFT KICK-HAT at ~78 BPM ──
+    const bpm=78, beatSec=60/bpm;
+    function schedBeat(){
+      if(!actx)return;
+      const t=actx.currentTime+0.05;
+      // Soft kick
+      const ko=actx.createOscillator(),kg=actx.createGain();
+      ko.type='sine'; ko.frequency.setValueAtTime(120,t); ko.frequency.exponentialRampToValueAtTime(40,t+0.08);
+      kg.gain.setValueAtTime(0.04,t); kg.gain.exponentialRampToValueAtTime(0.0001,t+0.12);
+      ko.connect(kg); kg.connect(actx.destination); ko.start(t); ko.stop(t+0.12);
+      // Hi-hat on offbeat
+      const hBuf=actx.createBuffer(1,Math.floor(actx.sampleRate*0.03),actx.sampleRate);
+      const hd=hBuf.getChannelData(0); for(let i=0;i<hd.length;i++) hd[i]=Math.random()*2-1;
+      const hs=actx.createBufferSource(); hs.buffer=hBuf;
+      const hf=actx.createBiquadFilter(); hf.type='highpass'; hf.frequency.value=7000;
+      const hg=actx.createGain(); const ht=t+beatSec*0.5;
+      hg.gain.setValueAtTime(0.015,ht); hg.gain.exponentialRampToValueAtTime(0.0001,ht+0.04);
+      hs.connect(hf); hf.connect(hg); hg.connect(actx.destination); hs.start(ht); hs.stop(ht+0.05);
+      setTimeout(schedBeat, beatSec*1000);
+    }
+    setTimeout(schedBeat, 800);
+    
+    // Start melody loop
+    lofiMelodyLoop();
+  }catch(e){}
+}
+
+function lofiMelodyLoop(){
+  if(!actx)return;
+  // Pentatonic melody in F major: F G A C D (higher octave for sparkle)
+  const notes=[349,392,440,523,587, 698,784,880]; // F4 G4 A4 C5 D5 F5 G5 A5
+  const phraseLengths=[3,4,5,3,4];
+  const phraseLen=phraseLengths[Math.floor(Math.random()*phraseLengths.length)];
+  const t0=actx.currentTime+0.1;
+  const beatSec=60/78;
+  
+  for(let i=0;i<phraseLen;i++){
+    const f=notes[Math.floor(Math.random()*notes.length)];
+    const t=t0+i*beatSec*0.75; // slightly ahead of beat for jazzy feel
+    const o=actx.createOscillator(),g=actx.createGain();
+    const filt=actx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=1200;
+    o.type=Math.random()>.5?'sine':'triangle'; o.frequency.value=f;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(0.035,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.8+Math.random()*0.4);
+    o.connect(filt); filt.connect(g); g.connect(actx.destination);
+    o.start(t); o.stop(t+1.4);
+  }
+  // Next phrase after a pause
+  const pause = (phraseLen * beatSec * 0.75 + 1.5 + Math.random()*2) * 1000;
+  setTimeout(lofiMelodyLoop, pause);
+}
+
+function touchSnd(){
+  if(!actx)return;
+  try{
+    // Wet squelchy clay sound — filtered noise burst + low thud
+    const t=actx.currentTime;
+    // Noise squish
+    const buf=actx.createBuffer(1,Math.floor(actx.sampleRate*0.06),actx.sampleRate);
+    const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    const ns=actx.createBufferSource(); ns.buffer=buf;
+    const nf=actx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=800+pots.left.spin*40; nf.Q.value=2;
+    const ng=actx.createGain();
+    ng.gain.setValueAtTime(0.025,t); ng.gain.exponentialRampToValueAtTime(0.0001,t+0.08);
+    ns.connect(nf); nf.connect(ng); ng.connect(actx.destination); ns.start(t); ns.stop(t+0.08);
+    // Low thud
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(60,t+0.05);
+    g.gain.setValueAtTime(0.02,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.07);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+0.08);
+  }catch(e){}
+}
+function playKilnSound(){
+  if(!actx)return;
+  [523,659,784,1047].forEach((f,i)=>{
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type='sine'; o.frequency.value=f;
+    const t=actx.currentTime+i*.16;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.065,t+.04);
+    g.gain.exponentialRampToValueAtTime(.0001,t+1.3);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+1.3);
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// BOOT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+initThree();
+
+['i-name','i-code'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('keydown',e=>{
+    if(e.key!=='Enter')return;
+    if(mode==='solo')goSolo(); else if(mode==='host')goHost(); else goJoin();
+  });
+});
+</script>
+</body>
+</html>
