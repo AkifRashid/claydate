@@ -1385,11 +1385,15 @@ function pcfg(){
     host:'0.peerjs.com', secure:true, port:443, path:'/',
     config:{
       iceServers:[
+        // STUN servers — discover public IPs
         {urls:'stun:stun.l.google.com:19302'},
         {urls:'stun:stun1.l.google.com:19302'},
-        {urls:'stun:stun2.l.google.com:19302'},
         {urls:'stun:stun.cloudflare.com:3478'},
-        {urls:'stun:global.stun.twilio.com:3478'}
+        // TURN servers (Open Relay Project — free, 20GB/month)
+        // These RELAY traffic when direct connection fails (different ISPs, strict NATs)
+        {urls:'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject'},
+        {urls:'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject'},
+        {urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject'},
       ]
     }
   };
