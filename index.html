@@ -218,9 +218,12 @@ input[type=text]::placeholder{color:#c0b8a8;}
     </div>
     <div class="sep"></div>
     <button class="fire-btn" style="padding:.3rem .7rem;font-size:.78rem;background:#8a9a78;" onmousedown="startRotate(1)" onmouseup="stopRotate()" onmouseleave="stopRotate()" ontouchstart="startRotate(1)" ontouchend="stopRotate()">Rotate &gt;</button>
-    <div class="sep"></div>
-    <button class="fire-btn" id="paint-ready-btn" style="padding:.35rem .9rem;font-size:.72rem;" onclick="pressReady()">Save to Gallery</button>
-    <span class="ready-status" id="paint-ready-status" style="font-size:.52rem;color:#8a9a78;font-weight:700;white-space:nowrap;"></span>
+  </div>
+
+  <!-- Gallery button — top right, only visible during paint stage -->
+  <div id="gallery-btn-wrap" style="display:none;position:absolute;top:3.6rem;right:1rem;z-index:32;flex-direction:column;align-items:flex-end;gap:.25rem;">
+    <button class="fire-btn" id="paint-ready-btn" style="padding:.5rem 1.2rem;font-size:.78rem;" onclick="pressReady()">Save to Gallery</button>
+    <span id="paint-ready-status" style="font-size:.54rem;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.4);"></span>
   </div>
 
   <div class="hint-bar" id="hint-bar">Drag ↕ to pull & push · Drag ↔ to widen & narrow · Hold to smooth</div>
@@ -1673,13 +1676,16 @@ function setStage(stage){
   const pill = document.getElementById('stage-pill');
   const hint = document.getElementById('hint-bar');
   const paintBar = document.getElementById('paint-bar');
+  const galleryBtn = document.getElementById('gallery-btn-wrap');
+  const readyWrap = document.getElementById('ready-wrap');
   const dragL = document.getElementById('drag-left');
   
   if(stage === 'shape'){
     pill.textContent = '✋ Shaping';
     hint.textContent = 'Drag ↕ to pull & push · Drag ↔ to widen & narrow · Hold to smooth';
     paintBar.style.display = 'none';
-    document.getElementById('ready-wrap').style.display = '';
+    galleryBtn.style.display = 'none';
+    readyWrap.style.display = '';
     dragL.style.pointerEvents = '';
     dragL.style.width = '50%';
     document.getElementById('drag-right').style.display = '';
@@ -1689,7 +1695,8 @@ function setStage(stage){
     pill.textContent = '🎨 Painting';
     hint.textContent = 'Drag to paint · Use arrows to rotate';
     paintBar.style.display = 'flex';
-    document.getElementById('ready-wrap').style.display = 'none'; // ready button is inside paint bar now
+    galleryBtn.style.display = 'flex';
+    readyWrap.style.display = 'none';
     dragL.style.pointerEvents = '';
     dragL.style.width = '100%';
     document.getElementById('drag-right').style.display = 'none';
@@ -1700,7 +1707,8 @@ function setStage(stage){
     scheduleRebuild('right');
   } else if(stage === 'gallery'){
     paintBar.style.display = 'none';
-    document.getElementById('ready-wrap').style.display = 'none';
+    galleryBtn.style.display = 'none';
+    readyWrap.style.display = 'none';
     hint.textContent = '';
     showGallery();
   }
