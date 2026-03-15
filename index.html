@@ -218,6 +218,9 @@ input[type=text]::placeholder{color:#c0b8a8;}
     </div>
     <div class="sep"></div>
     <button class="fire-btn" style="padding:.3rem .7rem;font-size:.78rem;background:#8a9a78;" onmousedown="startRotate(1)" onmouseup="stopRotate()" onmouseleave="stopRotate()" ontouchstart="startRotate(1)" ontouchend="stopRotate()">Rotate &gt;</button>
+    <div class="sep"></div>
+    <button class="fire-btn" id="paint-ready-btn" style="padding:.35rem .9rem;font-size:.72rem;" onclick="pressReady()">Save to Gallery</button>
+    <span class="ready-status" id="paint-ready-status" style="font-size:.52rem;color:#8a9a78;font-weight:700;white-space:nowrap;"></span>
   </div>
 
   <div class="hint-bar" id="hint-bar">Drag ↕ to pull & push · Drag ↔ to widen & narrow · Hold to smooth</div>
@@ -1686,7 +1689,7 @@ function setStage(stage){
     pill.textContent = '🎨 Painting';
     hint.textContent = 'Drag to paint · Use arrows to rotate';
     paintBar.style.display = 'flex';
-    document.getElementById('ready-wrap').style.display = '';
+    document.getElementById('ready-wrap').style.display = 'none'; // ready button is inside paint bar now
     dragL.style.pointerEvents = '';
     dragL.style.width = '100%';
     document.getElementById('drag-right').style.display = 'none';
@@ -1714,24 +1717,31 @@ function pressReady(){
 function updateReadyUI(){
   const btn = document.getElementById('ready-btn');
   const status = document.getElementById('ready-status');
+  const paintBtn = document.getElementById('paint-ready-btn');
+  const paintStatus = document.getElementById('paint-ready-status');
+  
   if(myReady){
     btn.classList.add('on');
     btn.textContent = '✓ Ready!';
+    if(paintBtn){ paintBtn.style.opacity = '0.5'; paintBtn.textContent = '✓ Ready!'; }
   } else {
     btn.classList.remove('on');
     btn.textContent = currentStage === 'shape' ? '✓ Ready to paint' : '✓ Ready for gallery';
+    if(paintBtn){ paintBtn.style.opacity = '1'; paintBtn.textContent = 'Save to Gallery'; }
   }
+  
+  let statusText = '';
   if(mode === 'solo'){
-    status.textContent = '';
+    statusText = '';
   } else if(myReady && partnerReady){
-    status.textContent = 'Both ready — advancing!';
+    statusText = 'Both ready!';
   } else if(myReady){
-    status.textContent = 'Waiting for partner…';
+    statusText = 'Waiting for partner…';
   } else if(partnerReady){
-    status.textContent = 'Partner is ready!';
-  } else {
-    status.textContent = '';
+    statusText = 'Partner is ready!';
   }
+  status.textContent = statusText;
+  if(paintStatus) paintStatus.textContent = statusText;
 }
 
 function checkBothReady(){
